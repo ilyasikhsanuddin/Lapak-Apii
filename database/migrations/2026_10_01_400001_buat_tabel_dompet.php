@@ -13,7 +13,7 @@ return new class extends Migration
             // 'eksternal', 'escrow', 'pendapatan', atau 'penjual:<id pengguna>'.
             $tabel->string('kode', 40)->unique();
             $tabel->string('jenis', 20)->index();
-            $tabel->foreignId('pengguna_id')->nullable()->constrained('pengguna')->restrictOnDelete();
+            $tabel->foreignId('pengguna_id')->nullable();
             // Salinan cepat dari jumlah seluruh mutasi. Bertanda: dompet eksternal boleh negatif.
             $tabel->bigInteger('saldo_rupiah')->default(0);
             $tabel->timestamps();
