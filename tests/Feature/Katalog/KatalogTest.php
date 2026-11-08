@@ -64,7 +64,7 @@ it('memperlakukan karakter pengganti pada pencarian sebagai teks biasa', functio
     Produk::factory()->create(['nama' => 'Kain Batik Cap', 'slug' => 'kain-batik-cap']);
     Produk::factory()->create(['nama' => 'Paket Hemat 50% Intip', 'slug' => 'paket-hemat']);
 
-    $cari = fn (string $kata) => $this->getJson('/api/v1/produk?cari=' . urlencode($kata))->assertOk();
+    $cari = fn (string $kata) => $this->getJson('/api/v1/produk?cari='.urlencode($kata))->assertOk();
 
     $cari('%%')->assertJsonCount(0, 'data');
     $cari('50%')->assertJsonPath('data.0.slug', 'paket-hemat');
