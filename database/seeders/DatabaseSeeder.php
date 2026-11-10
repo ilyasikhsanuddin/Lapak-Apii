@@ -6,14 +6,18 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Urutan pemanggilan mengikuti arah foreign key:
-     * tabel yang dirujuk harus terisi lebih dulu.
-     */
     public function run(): void
     {
-        $this->call([
+        $seeders = [
             PenggunaSeeder::class,
-        ]);
+            KatalogSeeder::class,
+            DompetSeeder::class,
+        ];
+
+        foreach ($seeders as $seeder) {
+            if (class_exists($seeder)) {
+                $this->call($seeder);
+            }
+        }
     }
 }

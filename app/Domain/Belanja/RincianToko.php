@@ -12,7 +12,7 @@ use App\Domain\Uang;
 final readonly class RincianToko
 {
     /**
-     * @param list<BarisBelanja> $baris
+     * @param  list<BarisBelanja>  $baris
      */
     public function __construct(
         public int $tokoId,

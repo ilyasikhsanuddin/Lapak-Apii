@@ -20,7 +20,7 @@ final class SimulasiBelanjaRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
-                'max:' . config('lapak.belanja.butir_maksimum'),
+                'max:'.config('lapak.belanja.butir_maksimum'),
             ],
             'butir.*.produk_id' => [
                 'required',
@@ -31,7 +31,7 @@ final class SimulasiBelanjaRequest extends FormRequest
             'butir.*.kuantitas' => [
                 'required',
                 'integer',
-                'between:1,' . config('lapak.belanja.kuantitas_maksimum'),
+                'between:1,'.config('lapak.belanja.kuantitas_maksimum'),
             ],
         ];
     }
