@@ -1,55 +1,30 @@
-# Pemilik berkas otomatis diminta meninjau setiap PR yang menyentuh berkasnya.
-# Berkas ini hanya disunting integrator, pada unggahan pembuka tiap sesi.
-# Ganti @akun-... dengan nama akun GitHub anggota tim Anda.
-
-# D1 Identitas dan Sesi
-/app/Models/Pengguna.php @ilyasikhsanuddin
-/app/Http/Controllers/RegistrasiController.php @ilyasikhsanuddin
-/routes/api/identitas.php @ilyasikhsanuddin
-/tests/Feature/Identitas/ @ilyasikhsanuddin
 /config/auth.php @ilyasikhsanuddin
-
-# D2 Toko dan Katalog
-/app/Models/Toko.php @hill-py
-/app/Models/Kategori.php @hill-py
-/app/Models/Produk.php @hill-py
+/app/Models/Sesi.php @ilyasikhsanuddin
+/app/Models/Sesi/ @ilyasikhsanuddin
+/app/Services/PenerbitSesi.php @ilyasikhsanuddin
+/app/Services/PemeriksaSesi.php @ilyasikhsanuddin
+/app/Services/PemeriksaKataSandi.php @ilyasikhsanuddin
+/app/Http/Controllers/MasukController.php @ilyasikhsanuddin
+/app/Http/Controllers/SesiController.php @ilyasikhsanuddin
 /app/Http/Controllers/KatalogController.php @hill-py
+/app/Http/Controllers/TokoSayaController.php @hill-py
+/app/Http/Controllers/ProdukSayaController.php @hill-py
 /routes/api/katalog.php @hill-py
-/tests/Feature/Katalog/ @hill-py
-
-# D3 Keranjang dan Pesanan
-/app/Domain/ @vicky123-byte
-/app/Models/Keranjang.php @vicky123-byte
-/app/Models/ButirKeranjang.php @vicky123-byte
 /app/Services/PenyusunBelanja.php @vicky123-byte
+/app/Services/LayananKeranjang.php @vicky123-byte
+/app/Http/Controllers/KeranjangController.php @vicky123-byte
 /routes/api/belanja.php @vicky123-byte
-/tests/Feature/Belanja/ @vicky123-byte
-
-# D4 Pembayaran dan Saldo
-/app/Models/Dompet.php @paujihahaha
-/app/Models/MutasiSaldo.php @paujihahaha
-/app/Services/BukuBesar.php @paujihahaha
 /app/Console/Commands/PeriksaBuku.php @paujihahaha
+/app/Http/Controllers/DompetController.php @paujihahaha
+/routes/api/dompet.php @paujihahaha
 /tests/Feature/Dompet/ @paujihahaha
-
-# D5 Otorisasi, Audit, dan Kualitas, termasuk seluruh berkas bersama
-/app/Exceptions/ @ahmadshobahrahmadani-ux
-/app/Http/Concerns/ @ahmadshobahrahmadani-ux
-/app/Http/Middleware/ @ahmadshobahrahmadani-ux
-/bootstrap/app.php @ahmadshobahrahmadani-ux
-/app/Providers/ @ahmadshobahrahmadani-ux
-/routes/api.php @ahmadshobahrahmadani-ux
 /routes/api/sistem.php @ahmadshobahrahmadani-ux
+/routes/console.php @ahmadshobahrahmadani-ux
+/tests/TestCase.php @ahmadshobahrahmadani-ux
+/tests/Pest.php @ahmadshobahrahmadani-ux
+/app/Console/Commands/PangkasSesi.php @ahmadshobahrahmadani-ux
 /config/lapak.php @ahmadshobahrahmadani-ux
-/composer.json @ahmadshobahrahmadani-ux
-/.github/ @ahmadshobahrahmadani-ux
-/docs/KONTRAK-API.md @ahmadshobahrahmadani-ux
-/tests/Feature/Sistem/ @ahmadshobahrahmadani-ux
-
-# Migration dan seeder: pemiliknya ditentukan digit domain pada nama berkas
-/database/migrations/*_1000*.php @ilyasikhsanuddin
-/database/migrations/*_2000*.php @hill-py
-/database/migrations/*_3000*.php @vicky123-byte
-/database/migrations/*_4000*.php @paujihahaha
-/database/migrations/*_5000*.php @ahmadshobahrahmadani-ux
 /database/seeders/DatabaseSeeder.php @ahmadshobahrahmadani-ux
+
+# Pengecualian. Pada CODEOWNERS, pola yang cocok PALING AKHIR yang menang
+/app/Domain/Sesi/ @ilyasikhsanuddin
