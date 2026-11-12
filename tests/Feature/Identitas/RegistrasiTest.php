@@ -69,3 +69,27 @@ it('menolak konfirmasi kata sandi yang tidak cocok', function () {
         ->assertUnprocessable()
         ->assertJsonPath('galat.rincian.konfirmasi_kata_sandi.0', 'Konfirmasi kata sandi tidak cocok.');
 });
+
+it('membatasi registrasi lima permintaan per menit per alamat IP', function () {
+    foreach (range(1, 5) as $ke) {
+        $this->postJson('/api/v1/registrasi', [])->assertUnprocessable();
+    }
+
+    $this->postJson('/api/v1/registrasi', [])
+        ->assertStatus(429)
+        ->assertExactJson(['sukses' => false, 'galat' => [
+            'kode' => 'TERLALU_SERING',
+            'pesan' => 'Terlalu banyak permintaan. Coba lagi sebentar.',
+            'rincian' => null,
+        ]]);
+});
+
+it('menghitung batas registrasi per alamat IP, bukan secara global', function () {
+    foreach (range(1, 5) as $ke) {
+        $this->postJson('/api/v1/registrasi', [])->assertUnprocessable();
+    }
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])
+        ->postJson('/api/v1/registrasi', [])
+        ->assertUnprocessable();
+});
