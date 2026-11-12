@@ -1,9 +1,12 @@
-# Piagam Domain D2: Toko dan Katalog
+# Piagam Domain D2 — Toko dan Katalog
 
-- **Pemilik Domain:** Hilma
-- **Tabel Utama:** `toko`, `kategori`, `produk`
-- **Pertanyaan Utama:** Apa yang dijual, oleh siapa, dan mana yang boleh tampil?
+## Deskripsi
+Mengelola data profil toko, kategori produk, dan pencarian katalog barang publik.
 
-## Aturan Bisnis Terkait
-- **LP-3:** Satu pengguna memiliki paling banyak satu toko. Toko baru berstatus menunggu sampai disetujui admin.
-- **LP-4:** Produk hanya tampil dan dapat dibeli bila berstatus aktif, tokonya aktif, dan stoknya mencukupi.
+## Yang dibutuhkan dari domain lain
+- **Domain D1 (Pengguna & Identitas):** `pemilik_id` pada tabel `toko` merujuk ke tabel `pengguna`. Perlu validasi surel/identitas pengguna untuk kepemilikan toko.
+- **Domain D3 (Keranjang & Transaksi):** Data harga (`harga_rupiah`), stok, dan berat (`berat_gram`) produk untuk kalkulasi item belanjaan.
+
+## Yang disediakan untuk domain lain
+- **Scope Tampil (`Produk::scopeTampil`):** Menjamin seluruh domain publik hanya membaca produk berstatus aktif dari toko aktif (LP-4).
+- **Resource & Snapshot Produk:** Data rincian produk dan toko untuk pelaporan mutasi/transaksi di Domain D3 dan D4.
