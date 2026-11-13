@@ -20,7 +20,7 @@ final class Produk extends Model
     protected $table = 'produk';
 
     protected $fillable = [
-        'kategori_id', 'nama', 'slug', 'deskripsi', 'harga_rupiah', 'stok', 'berat_gram',
+        'kategori_id', 'nama', 'slug', 'deskripsi', 'harga_rupiah', 'stok', 'berat_gram', 'status',
     ];
 
     protected function casts(): array
