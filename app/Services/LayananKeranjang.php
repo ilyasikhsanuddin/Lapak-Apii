@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Domain\Belanja\ButirBermasalah;
+use App\Domain\Belanja\RincianToko;
+use App\Exceptions\GalatDomain;
 use App\Models\ButirKeranjang;
 use App\Models\Keranjang;
 use App\Models\Pengguna;
@@ -15,7 +18,7 @@ final class LayananKeranjang
     ) {}
 
     /**
-     * @return array{0: array, 1: array}
+     * @return array{0: list<RincianToko>, 1: list<ButirBermasalah>}
      */
     public function lihat(Pengguna $pengguna): array
     {
@@ -37,6 +40,76 @@ final class LayananKeranjang
             ->values()
             ->all();
 
-        return $this->penyusun->pilah($butir);
+        return $this->penyusun->pilah($butir, $pengguna);
+    }
+
+    /**
+     * Menetapkan kuantitas menjadi angka tertentu, bukan menambahkannya.
+     */
+    public function aturButir(
+        Pengguna $pengguna,
+        int $produkId,
+        int $kuantitas,
+    ): void {
+        $this->penyusun->susun(
+            [['produk_id' => $produkId, 'kuantitas' => $kuantitas]],
+            $pengguna,
+        );
+
+        $keranjang = $this->milik($pengguna);
+
+        $sudahAda = $keranjang->butir()
+            ->where('produk_id', $produkId)
+            ->exists();
+
+        if (
+            ! $sudahAda
+            && $keranjang->butir()->count() >= config('lapak.belanja.butir_maksimum')
+        ) {
+            throw new GalatDomain(
+                'KERANJANG_PENUH',
+                'Keranjang sudah penuh.',
+                422,
+            );
+        }
+
+        $keranjang->butir()->updateOrCreate(
+            ['produk_id' => $produkId],
+            ['kuantitas' => $kuantitas],
+        );
+    }
+
+    /**
+     * Menghapus butir yang tidak ada tetap dianggap berhasil.
+     */
+    public function hapusButir(Pengguna $pengguna, int $produkId): void
+    {
+        $this->milik($pengguna)
+            ->butir()
+            ->where('produk_id', $produkId)
+            ->delete();
+    }
+
+    public function kosongkan(Pengguna $pengguna): void
+    {
+        $this->milik($pengguna)->butir()->delete();
+    }
+
+    /**
+     * Keranjang selalu dicari berdasarkan pengguna yang sedang masuk.
+     */
+    private function milik(Pengguna $pengguna): Keranjang
+    {
+        $keranjang = Keranjang::query()
+            ->where('pengguna_id', $pengguna->id)
+            ->first();
+
+        if ($keranjang === null) {
+            $keranjang = new Keranjang;
+            $keranjang->pengguna_id = $pengguna->id;
+            $keranjang->save();
+        }
+
+        return $keranjang;
     }
 }
