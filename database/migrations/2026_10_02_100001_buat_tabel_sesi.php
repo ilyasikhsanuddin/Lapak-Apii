@@ -20,8 +20,8 @@ return new class extends Migration
             $tabel->string('agen_pengguna', 255)->nullable();
             // Kapan kata sandi terakhir dibuktikan pada sesi ini (LP-15).
             $tabel->timestamp('dikonfirmasi_pada')->nullable();
-            $tabel->timestamp('terakhir_dipakai_pada');
-            $tabel->timestamp('kedaluwarsa_pada');
+            $tabel->timestamp('terakhir_dipakai_pada')->useCurrent();
+            $tabel->timestamp('kedaluwarsa_pada')->useCurrent();
             $tabel->timestamp('dicabut_pada')->nullable();
             $tabel->timestamps();
 
