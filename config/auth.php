@@ -99,6 +99,11 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+    // Guard API Lapak. Driver "sesi" didaftarkan di AppServiceProvider.
+    'sesi' => [
+        'driver' => 'sesi',
+    'provider' => 'users',
+        ],
     ],
 
     /*
