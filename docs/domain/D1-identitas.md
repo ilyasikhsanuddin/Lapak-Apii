@@ -33,3 +33,22 @@ Siapa yang sedang berbicara dengan sistem, dan apa buktinya?
 - PR A3: tabel, model, factory pengguna, dan akun contoh.
 - PR B2: endpoint registrasi beserta ujinya.
 - Kata sandi tidak pernah muncul pada respons.
+
+## Yang dibutuhkan dari domain lain
+
+| Dari | Yang dibutuhkan | Dipakai untuk |
+|---|---|---|
+| D5 (Dani) | `PenanganGalatApi` dan bentuk galat kontrak (`sukses`, `galat.kode`, `galat.rincian`) | Respons 422 validasi dan 429 pembatasan laju berbentuk kontrak |
+| D5 (Dani) | Middleware `PaksaJson` dan `IdPermintaan` | Semua rute API menjawab JSON dan membawa id permintaan |
+| D5 (Dani) | `ResponsApi` (metode `sukses()` pada `Controller`) | Amplop respons registrasi |
+| D5 (Dani) | `config/lapak.php` dan `bootstrap/app.php` | Konfigurasi dan pemuat rute per domain |
+
+## Yang disediakan untuk domain lain
+
+| Untuk | Yang disediakan | Keterangan |
+|---|---|---|
+| D2, D3, D4 | Tabel `pengguna` (migration `2026_10_01_100001`) | Dirujuk foreign key `toko.pemilik_id`, `keranjang.pengguna_id`, dan dompet pengguna |
+| Semua | Model `Pengguna`, `PenggunaFactory`, enum `StatusAkun` | Dipakai uji dan seeder domain lain |
+| D2 | Akun contoh dari `PenggunaSeeder` (misalnya `sri@lapak.test`) | `KatalogSeeder` mencari pemilik toko berdasarkan surel |
+| Semua | Provider autentikasi `Pengguna` pada `config/auth.php` | Guard sesi Sesi 2 bergantung padanya |
+| Klien | Endpoint `POST /api/v1/registrasi` dan `PenggunaResource` | Satu-satunya pintu tulis pada Sesi 1 |
