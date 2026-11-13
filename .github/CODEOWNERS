@@ -8,12 +8,21 @@
 /routes/api/identitas.php @ilyasikhsanuddin
 /tests/Feature/Identitas/ @ilyasikhsanuddin
 /config/auth.php @ilyasikhsanuddin
+/app/Models/Sesi.php @ilyasikhsanuddin
+/app/Models/Sesi/ @ilyasikhsanuddin
+/app/Services/PenerbitSesi.php @ilyasikhsanuddin
+/app/Services/PemeriksaSesi.php @ilyasikhsanuddin
+/app/Services/PemeriksaKataSandi.php @ilyasikhsanuddin
+/app/Http/Controllers/MasukController.php @ilyasikhsanuddin
+/app/Http/Controllers/SesiController.php @ilyasikhsanuddin
 
 # D2 Toko dan Katalog
 /app/Models/Toko.php @hill-py
 /app/Models/Kategori.php @hill-py
 /app/Models/Produk.php @hill-py
 /app/Http/Controllers/KatalogController.php @hill-py
+/app/Http/Controllers/TokoSayaController.php @hill-py
+/app/Http/Controllers/ProdukSayaController.php @hill-py
 /routes/api/katalog.php @hill-py
 /tests/Feature/Katalog/ @hill-py
 
@@ -22,6 +31,8 @@
 /app/Models/Keranjang.php @vicky123-byte
 /app/Models/ButirKeranjang.php @vicky123-byte
 /app/Services/PenyusunBelanja.php @vicky123-byte
+/app/Services/LayananKeranjang.php @vicky123-byte
+/app/Http/Controllers/KeranjangController.php @vicky123-byte
 /routes/api/belanja.php @vicky123-byte
 /tests/Feature/Belanja/ @vicky123-byte
 
@@ -30,6 +41,8 @@
 /app/Models/MutasiSaldo.php @paujihahaha
 /app/Services/BukuBesar.php @paujihahaha
 /app/Console/Commands/PeriksaBuku.php @paujihahaha
+/app/Http/Controllers/DompetController.php @paujihahaha
+/routes/api/dompet.php @paujihahaha
 /tests/Feature/Dompet/ @paujihahaha
 
 # D5 Otorisasi, Audit, dan Kualitas, termasuk seluruh berkas bersama
@@ -40,6 +53,10 @@
 /app/Providers/ @ahmadshobahrahmadani-ux
 /routes/api.php @ahmadshobahrahmadani-ux
 /routes/api/sistem.php @ahmadshobahrahmadani-ux
+/routes/console.php @ahmadshobahrahmadani-ux
+/tests/TestCase.php @ahmadshobahrahmadani-ux
+/tests/Pest.php @ahmadshobahrahmadani-ux
+/app/Console/Commands/PangkasSesi.php @ahmadshobahrahmadani-ux
 /config/lapak.php @ahmadshobahrahmadani-ux
 /composer.json @ahmadshobahrahmadani-ux
 /.github/ @ahmadshobahrahmadani-ux
@@ -53,3 +70,6 @@
 /database/migrations/*_4000*.php @paujihahaha
 /database/migrations/*_5000*.php @ahmadshobahrahmadani-ux
 /database/seeders/DatabaseSeeder.php @ahmadshobahrahmadani-ux
+
+# Pengecualian. Pada CODEOWNERS, pola yang cocok PALING AKHIR yang menang
+/app/Domain/Sesi/ @ilyasikhsanuddin
