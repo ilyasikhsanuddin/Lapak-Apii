@@ -42,6 +42,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Guard API Lapak. Driver "sesi" didaftarkan di AppServiceProvider.
+        'sesi' => [
+            'driver' => 'sesi',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -98,11 +103,6 @@ return [
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,
-        ],
-    // Guard API Lapak. Driver "sesi" didaftarkan di AppServiceProvider.
-    'sesi' => [
-        'driver' => 'sesi',
-    'provider' => 'users',
         ],
     ],
 
