@@ -1,14 +1,25 @@
 <?php
 
+use App\Http\Controllers\MasukController;
+use App\Http\Controllers\RegistrasiController;
+use App\Http\Controllers\SesiController;
 use Illuminate\Support\Facades\Route;
 
-/*
-| Setiap domain memiliki berkas rute sendiri di routes/api/.
-| Berkas ini tidak disunting lagi setelah fondasi: menambah rute berarti
-| menyunting berkas domain Anda, bukan berkas bersama ini.
-*/
-Route::prefix('v1')->name('v1.')->group(function (): void {
-    foreach (glob(__DIR__.'/api/*.php') ?: [] as $berkas) {
-        require $berkas;
-    }
+Route::post('registrasi', RegistrasiController::class)->name('registrasi');
+Route::post('masuk', MasukController::class)->middleware('throttle:masuk')->name('masuk');
+
+Route::middleware('auth:sesi')->group(function (): void {
+    Route::get('saya', [SesiController::class, 'saya'])->name('saya');
+    Route::post('keluar', [SesiController::class, 'keluar'])->name('keluar');
+
+    Route::get('sesi', [SesiController::class, 'index'])->name('sesi.index');
+    Route::post('sesi/konfirmasi', [SesiController::class, 'konfirmasi'])
+        ->middleware('throttle:konfirmasi')
+        ->name('sesi.konfirmasi');
+
+    // Mencabut perangkat adalah tindakan sensitif: pemegang kunci curian
+    // tidak boleh dapat mengusir pemilik akun dari perangkatnya sendiri.
+    Route::delete('sesi/{pengenal}', [SesiController::class, 'destroy'])
+        ->middleware('sesi.segar')
+        ->name('sesi.destroy');
 });
