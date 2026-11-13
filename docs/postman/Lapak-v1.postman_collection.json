@@ -29,6 +29,27 @@
           }
         }
       ]
+    },
+    {
+      "name": "Sistem & Kualitas (Domain D5)",
+      "item": [
+        {
+          "name": "GET /api/v1/health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health",
+            "description": "Harus 200 dan header X-Request-Id ada (middleware D5 aktif)."
+          }
+        },
+        {
+          "name": "GET /api/v1/alamat-yang-tidak-ada",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/alamat-yang-tidak-ada",
+            "description": "Harus 404 berbentuk JSON kontrak, bukan halaman HTML."
+          }
+        }
+      ]
     }
   ]
-}
+} 
