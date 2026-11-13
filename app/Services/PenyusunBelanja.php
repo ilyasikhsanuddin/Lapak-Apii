@@ -11,6 +11,7 @@ use App\Domain\Belanja\PenghitungBelanja;
 use App\Domain\Belanja\RincianToko;
 use App\Domain\Uang;
 use App\Exceptions\ProdukTidakDapatDibeli;
+use App\Models\Pengguna;
 use App\Models\Produk;
 
 final class PenyusunBelanja
@@ -21,7 +22,7 @@ final class PenyusunBelanja
      * @param  list<array{produk_id: int, kuantitas: int}>  $butir
      * @return array{list<RincianToko>, list<ButirBermasalah>}
      */
-    public function pilah(array $butir): array
+    public function pilah(array $butir, ?Pengguna $pembeli = null): array
     {
         $diminta = collect($butir)->pluck('kuantitas', 'produk_id');
 
@@ -31,8 +32,6 @@ final class PenyusunBelanja
             ->whereIn('id', $diminta->keys())
             ->get()
             ->keyBy('id');
-
-        $hilang = $diminta->keys()->diff($produk->keys());
 
         $baris = [];
         $toko = [];
@@ -46,6 +45,17 @@ final class PenyusunBelanja
                     (int) $produkId,
                     (int) $kuantitas,
                     AlasanBermasalah::TidakTersedia,
+                );
+
+                continue;
+            }
+
+            if ($pembeli !== null && $barang->dimilikiOleh($pembeli)) {
+                $bermasalah[] = new ButirBermasalah(
+                    $barang->id,
+                    $kuantitas,
+                    AlasanBermasalah::ProdukSendiri,
+                    $barang->nama,
                 );
 
                 continue;
@@ -86,14 +96,14 @@ final class PenyusunBelanja
     }
 
     /**
-     * Menyusun belanja dengan aturan ketat seperti sebelumnya.
+     * Menyusun belanja dengan aturan ketat.
      *
      * @param  list<array{produk_id: int, kuantitas: int}>  $butir
      * @return list<RincianToko>
      */
-    public function susun(array $butir): array
+    public function susun(array $butir, ?Pengguna $pembeli = null): array
     {
-        [$rincian, $bermasalah] = $this->pilah($butir);
+        [$rincian, $bermasalah] = $this->pilah($butir, $pembeli);
 
         $tidakTersedia = array_filter(
             $bermasalah,
@@ -110,6 +120,13 @@ final class PenyusunBelanja
         }
 
         foreach ($bermasalah as $item) {
+            if ($item->alasan === AlasanBermasalah::ProdukSendiri) {
+                throw ProdukTidakDapatDibeli::milikSendiri(
+                    $item->produkId,
+                    (string) $item->namaProduk,
+                );
+            }
+
             if ($item->alasan === AlasanBermasalah::StokKurang) {
                 throw ProdukTidakDapatDibeli::stokKurang(
                     $item->produkId,

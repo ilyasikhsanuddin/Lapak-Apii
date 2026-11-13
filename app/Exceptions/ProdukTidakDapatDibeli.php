@@ -14,6 +14,13 @@ final class ProdukTidakDapatDibeli extends GalatDomain
         ]);
     }
 
+    public static function milikSendiri(int $idProduk, string $nama): self
+    {
+        return new self('LP-5', "{$nama} adalah produk toko Anda sendiri.", 422, [
+            'produk_id' => $idProduk,
+        ]);
+    }
+
     public static function stokKurang(
         int $idProduk,
         string $nama,
