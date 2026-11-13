@@ -10,4 +10,3 @@ Artisan::command('inspire', function () {
 
 // Sesi yang sudah lama mati dibuang setiap dini hari.
 Schedule::command('lapak:pangkas-sesi')->dailyAt('03:15');
-    
