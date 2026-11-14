@@ -19,12 +19,13 @@ final class PenyusunBelanja
     /**
      * Memilah butir menjadi pesanan yang valid dan butir bermasalah.
      *
-     * @param  list<array{produk_id: int, kuantitas: int}>  $butir
+     * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
      * @return array{list<RincianToko>, list<ButirBermasalah>}
      */
     public function pilah(array $butir, ?Pengguna $pembeli = null): array
     {
         $diminta = collect($butir)->pluck('kuantitas', 'produk_id');
+        $catatanPerProduk = collect($butir)->pluck('catatan', 'produk_id');
 
         $produk = Produk::query()
             ->tampil()
@@ -79,6 +80,7 @@ final class PenyusunBelanja
                 tokoId: $barang->toko_id,
                 hargaSatuan: Uang::dari($barang->harga_rupiah),
                 kuantitas: $kuantitas,
+                catatan: $catatanPerProduk->get($barang->id),
             );
 
             $toko[$barang->toko_id] = [
@@ -98,7 +100,7 @@ final class PenyusunBelanja
     /**
      * Menyusun belanja dengan aturan ketat.
      *
-     * @param  list<array{produk_id: int, kuantitas: int}>  $butir
+     * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
      * @return list<RincianToko>
      */
     public function susun(array $butir, ?Pengguna $pembeli = null): array
