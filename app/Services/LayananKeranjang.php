@@ -36,6 +36,7 @@ final class LayananKeranjang
             ->map(fn (ButirKeranjang $b) => [
                 'produk_id' => $b->produk_id,
                 'kuantitas' => $b->kuantitas,
+                'catatan' => $b->catatan,
             ])
             ->values()
             ->all();
@@ -44,12 +45,13 @@ final class LayananKeranjang
     }
 
     /**
-     * Menetapkan kuantitas menjadi angka tertentu, bukan menambahkannya.
+     * Menetapkan kuantitas dan catatan butir keranjang.
      */
     public function aturButir(
         Pengguna $pengguna,
         int $produkId,
         int $kuantitas,
+        ?string $catatan = null,
     ): void {
         $this->penyusun->susun(
             [['produk_id' => $produkId, 'kuantitas' => $kuantitas]],
@@ -75,7 +77,10 @@ final class LayananKeranjang
 
         $keranjang->butir()->updateOrCreate(
             ['produk_id' => $produkId],
-            ['kuantitas' => $kuantitas],
+            [
+                'kuantitas' => $kuantitas,
+                'catatan' => $catatan,
+            ],
         );
     }
 

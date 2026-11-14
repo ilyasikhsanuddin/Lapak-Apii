@@ -1,34 +1,176 @@
-{
-  "info": {
-    "name": "Lapak-v1 API Collection",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Katalog & Toko (Domain D2)",
-      "item": [
-        {
-          "name": "GET /api/v1/kategori",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/api/v1/kategori"
-          }
-        },
-        {
-          "name": "GET /api/v1/produk",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/api/v1/produk"
-          }
-        },
-        {
-          "name": "GET /api/v1/toko/:slug",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/api/v1/toko/batik-laweyan-bu-sri"
-          }
-        }
-      ]
-    }
-  ]
+﻿{
+    "variable":  [
+                     {
+                         "key":  "base_url",
+                         "type":  "default",
+                         "value":  "http://127.0.0.1:8000"
+                     },
+                     {
+                         "key":  "kunci_sesi",
+                         "type":  "secret",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "pengenal_sesi",
+                         "type":  "default",
+                         "value":  ""
+                     }
+                 ],
+    "info":  {
+                 "name":  "Lapak-v1 API Collection",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Autentikasi dan Sesi",
+                     "item":  [
+                                  {
+                                      "request":  {
+                                                      "body":  {
+                                                                   "raw":  "{\"surel\":\"sri@lapak.test\",\"kata_sandi\":\"LapakContoh#2026\"}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               },
+                                                                   "mode":  "raw"
+                                                               },
+                                                      "method":  "POST",
+                                                      "url":  "{{base_url}}/api/v1/masuk",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "type":  "text",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ]
+                                                  },
+                                      "name":  "POST /api/v1/masuk",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const hasil = pm.response.json();",
+                                                                                    "const kunci = hasil?.data?.kunci;",
+                                                                                    "if (pm.response.code === 201 \u0026\u0026 kunci) {",
+                                                                                    "    pm.collectionVariables.set(\u0027kunci_sesi\u0027, kunci);",
+                                                                                    "    console.log(\u0027Kunci sesi berhasil disimpan.\u0027);",
+                                                                                    "} else {",
+                                                                                    "    console.error(\u0027Kunci sesi tidak ditemukan. Periksa respons login.\u0027);",
+                                                                                    "}"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/saya",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/v1/saya",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "type":  "text",
+                                                                         "value":  "Bearer {{kunci_sesi}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/keluar",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "url":  "{{base_url}}/api/v1/keluar",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "type":  "text",
+                                                                         "value":  "Bearer {{kunci_sesi}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/sesi",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/v1/sesi",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "type":  "text",
+                                                                         "value":  "Bearer {{kunci_sesi}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "POST /api/v1/sesi/konfirmasi",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "url":  "{{base_url}}/api/v1/sesi/konfirmasi",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "type":  "text",
+                                                                         "value":  "Bearer {{kunci_sesi}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "DELETE /api/v1/sesi/:pengenal",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "url":  "{{base_url}}/api/v1/sesi/{{pengenal_sesi}}",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "type":  "text",
+                                                                         "value":  "Bearer {{kunci_sesi}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Katalog dan Toko",
+                     "item":  [
+                                  {
+                                      "name":  "GET /api/v1/kategori",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/v1/kategori",
+                                                      "header":  [
+
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/produk",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/v1/produk",
+                                                      "header":  [
+
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "GET /api/v1/toko/:slug",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/v1/toko/batik-laweyan-bu-sri",
+                                                      "header":  [
+
+                                                                 ]
+                                                  }
+                                  }
+                              ]
+                 }
+             ]
 }

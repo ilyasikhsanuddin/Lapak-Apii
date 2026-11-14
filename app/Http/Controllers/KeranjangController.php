@@ -33,6 +33,7 @@ final class KeranjangController extends Controller
             $request->user(),
             $produkId,
             $request->integer('kuantitas'),
+            $request->validated('catatan'),
         );
 
         return $this->show($request);

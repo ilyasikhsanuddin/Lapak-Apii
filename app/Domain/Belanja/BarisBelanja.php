@@ -15,6 +15,7 @@ final readonly class BarisBelanja
         public int $tokoId,
         public Uang $hargaSatuan,
         public int $kuantitas,
+        public ?string $catatan = null,
     ) {
         if ($kuantitas < 1) {
             throw new InvalidArgumentException('Kuantitas minimal 1.');

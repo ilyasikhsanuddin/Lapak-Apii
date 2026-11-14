@@ -100,6 +100,41 @@ it('menaruh butir dan menetapkan kuantitasnya, bukan menambahkannya', function (
     expect(ButirKeranjang::sole()->kuantitas)->toBe(2);
 });
 
+it('menyimpan dan menampilkan catatan pada butir keranjang', function () {
+    $alamat = "/api/v1/keranjang/butir/{$this->kain->id}";
+
+    $this->sebagai($this->andi)
+        ->putJson($alamat, [
+            'kuantitas' => 2,
+            'catatan' => 'Jangan bungkus terlalu rapat.',
+        ])
+        ->assertOk()
+        ->assertJsonPath(
+            'data.pesanan.0.baris.0.catatan',
+            'Jangan bungkus terlalu rapat.',
+        );
+
+    expect(ButirKeranjang::sole()->catatan)
+        ->toBe('Jangan bungkus terlalu rapat.');
+
+    $this->getJson('/api/v1/keranjang')
+        ->assertOk()
+        ->assertJsonPath(
+            'data.pesanan.0.baris.0.catatan',
+            'Jangan bungkus terlalu rapat.',
+        );
+});
+
+it('menolak catatan yang melebihi 200 karakter', function () {
+    $this->sebagai($this->andi)
+        ->putJson("/api/v1/keranjang/butir/{$this->kain->id}", [
+            'kuantitas' => 1,
+            'catatan' => str_repeat('a', 201),
+        ])
+        ->assertUnprocessable()
+        ->assertJsonPath('galat.kode', 'VALIDASI');
+});
+
 it('tidak menyimpan harga kiriman klien di mana pun (LP-6)', function () {
     $this->sebagai($this->andi)
         ->putJson("/api/v1/keranjang/butir/{$this->kain->id}", [
