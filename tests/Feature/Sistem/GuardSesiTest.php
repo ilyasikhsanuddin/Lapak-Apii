@@ -15,6 +15,10 @@ beforeEach(function () {
     Route::middleware(['api', 'auth:sesi', 'sesi.segar'])
         ->post('/api/_uji/sensitif', fn () => ['ok' => true]);
 
+    Route::middleware(['api', 'auth:sesi'])->get('/api/_uji/galat-log', function () {
+        throw new \RuntimeException('Galat simulasi untuk uji keamanan log.');
+    });
+
     $this->pengguna = Pengguna::factory()->create();
 });
 
@@ -42,6 +46,36 @@ it('mengenali pengguna dan sesinya dari kunci yang sah', function () {
     $this->sebagai($this->pengguna)->getJson('/api/_uji/terlindung')
         ->assertOk()
         ->assertExactJson(['pengguna' => $this->pengguna->id, 'sesi' => $this->sesiUji->pengenal]);
+});
+
+it('tidak menulis bagian rahasia kunci sesi ke log saat rute terlindung mengalami galat 500', function () {
+    $jalurLog = sys_get_temp_dir().DIRECTORY_SEPARATOR.'lapak-uji-kunci-'.bin2hex(random_bytes(8)).'.log';
+
+    config([
+        'logging.default' => 'single',
+        'logging.channels.single.path' => $jalurLog,
+    ]);
+
+    $pengelolaLog = app('log');
+    $pengelolaLog->forgetChannel('single');
+    $pengelolaLog->setDefaultDriver('single');
+
+    try {
+        [, $kunci] = app(PenerbitSesi::class)->terbitkan($this->pengguna, 'Perangkat uji');
+        $rahasia = explode('.', $kunci, 2)[1];
+
+        $this->denganKunci($kunci)
+            ->getJson('/api/_uji/galat-log')
+            ->assertInternalServerError();
+
+        expect(file_exists($jalurLog))->toBeTrue()
+            ->and(file_get_contents($jalurLog))->not->toContain($rahasia);
+    } finally {
+        $pengelolaLog->forgetChannel('single');
+        if (file_exists($jalurLog)) {
+            unlink($jalurLog);
+        }
+    }
 });
 
 it('menolak kunci begitu sesinya dicabut', function () {
