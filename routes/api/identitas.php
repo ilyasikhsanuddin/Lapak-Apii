@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RegistrasiController;
+use App\Http\Controllers\UbahKataSandiController;
 use Illuminate\Support\Facades\Route;
 
 // Login, logout, dan daftar sesi menyusul pada Sesi 2.
@@ -10,3 +11,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('registrasi', RegistrasiController::class)
     ->middleware('throttle:5,1,registrasi')
     ->name('registrasi');
+
+// Mengganti kata sandi adalah tindakan sensitif: hanya sesi segar yang boleh.
+Route::middleware('auth:sesi')->group(function (): void {
+    Route::put('saya/kata-sandi', UbahKataSandiController::class)
+        ->middleware('sesi.segar')
+        ->name('saya.kata-sandi');
+});
