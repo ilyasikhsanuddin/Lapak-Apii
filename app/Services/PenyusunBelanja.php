@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Domain\Belanja\AlasanBermasalah;
 use App\Domain\Belanja\BarisBelanja;
+use App\Domain\Belanja\ButirBermasalah;
 use App\Domain\Belanja\PenghitungBelanja;
 use App\Domain\Belanja\RincianToko;
 use App\Domain\Uang;
 use App\Exceptions\ProdukTidakDapatDibeli;
+use App\Models\Pengguna;
 use App\Models\Produk;
 
-/**
- * Jembatan antara basis data dan rumus murni: mengambil harga dan stok TERKINI dari server,
- * lalu menyerahkannya ke PenghitungBelanja. Klien hanya menyebut produk dan kuantitas (LP-6).
- */
 final class PenyusunBelanja
 {
-    /** @param list<array{produk_id: int, kuantitas: int}> $butir
-     * @return list<RincianToko>
+    /**
+     * Memilah butir menjadi pesanan yang valid dan butir bermasalah.
+     *
+     * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
+     * @return array{list<RincianToko>, list<ButirBermasalah>}
      */
-    public function susun(array $butir): array
+    public function pilah(array $butir, ?Pengguna $pembeli = null): array
     {
         $diminta = collect($butir)->pluck('kuantitas', 'produk_id');
+        $catatanPerProduk = collect($butir)->pluck('catatan', 'produk_id');
 
         $produk = Produk::query()
             ->tampil()
@@ -31,25 +34,44 @@ final class PenyusunBelanja
             ->get()
             ->keyBy('id');
 
-        $hilang = $diminta->keys()->diff($produk->keys())->values()->all();
-
-        if ($hilang !== []) {
-            throw ProdukTidakDapatDibeli::tidakTampil($hilang);
-        }
-
         $baris = [];
         $toko = [];
+        $bermasalah = [];
 
         foreach ($diminta as $produkId => $kuantitas) {
-            $barang = $produk[$produkId];
+            $barang = $produk->get($produkId);
+
+            if ($barang === null) {
+                $bermasalah[] = new ButirBermasalah(
+                    (int) $produkId,
+                    (int) $kuantitas,
+                    AlasanBermasalah::TidakTersedia,
+                );
+
+                continue;
+            }
+
+            if ($pembeli !== null && $barang->dimilikiOleh($pembeli)) {
+                $bermasalah[] = new ButirBermasalah(
+                    $barang->id,
+                    $kuantitas,
+                    AlasanBermasalah::ProdukSendiri,
+                    $barang->nama,
+                );
+
+                continue;
+            }
 
             if ($barang->stok < $kuantitas) {
-                throw ProdukTidakDapatDibeli::stokKurang(
+                $bermasalah[] = new ButirBermasalah(
                     $barang->id,
-                    $barang->nama,
                     $kuantitas,
+                    AlasanBermasalah::StokKurang,
+                    $barang->nama,
                     $barang->stok,
                 );
+
+                continue;
             }
 
             $baris[] = new BarisBelanja(
@@ -58,6 +80,7 @@ final class PenyusunBelanja
                 tokoId: $barang->toko_id,
                 hargaSatuan: Uang::dari($barang->harga_rupiah),
                 kuantitas: $kuantitas,
+                catatan: $catatanPerProduk->get($barang->id),
             );
 
             $toko[$barang->toko_id] = [
@@ -66,7 +89,56 @@ final class PenyusunBelanja
             ];
         }
 
-        return (new PenghitungBelanja(config('lapak.komisi_persen')))
-            ->hitung($baris, $toko);
+        $rincian = $baris === []
+            ? []
+            : (new PenghitungBelanja(config('lapak.komisi_persen')))
+                ->hitung($baris, $toko);
+
+        return [$rincian, $bermasalah];
+    }
+
+    /**
+     * Menyusun belanja dengan aturan ketat.
+     *
+     * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
+     * @return list<RincianToko>
+     */
+    public function susun(array $butir, ?Pengguna $pembeli = null): array
+    {
+        [$rincian, $bermasalah] = $this->pilah($butir, $pembeli);
+
+        $tidakTersedia = array_filter(
+            $bermasalah,
+            fn (ButirBermasalah $item): bool => $item->alasan === AlasanBermasalah::TidakTersedia,
+        );
+
+        if ($tidakTersedia !== []) {
+            throw ProdukTidakDapatDibeli::tidakTampil(
+                array_map(
+                    fn (ButirBermasalah $item): int => $item->produkId,
+                    array_values($tidakTersedia),
+                ),
+            );
+        }
+
+        foreach ($bermasalah as $item) {
+            if ($item->alasan === AlasanBermasalah::ProdukSendiri) {
+                throw ProdukTidakDapatDibeli::milikSendiri(
+                    $item->produkId,
+                    (string) $item->namaProduk,
+                );
+            }
+
+            if ($item->alasan === AlasanBermasalah::StokKurang) {
+                throw ProdukTidakDapatDibeli::stokKurang(
+                    $item->produkId,
+                    $item->namaProduk ?? 'Produk',
+                    $item->kuantitas,
+                    $item->stokTersedia ?? 0,
+                );
+            }
+        }
+
+        return $rincian;
     }
 }

@@ -20,7 +20,7 @@ final class Produk extends Model
     protected $table = 'produk';
 
     protected $fillable = [
-        'kategori_id', 'nama', 'slug', 'deskripsi', 'harga_rupiah', 'stok', 'berat_gram',
+        'kategori_id', 'nama', 'slug', 'deskripsi', 'harga_rupiah', 'stok', 'berat_gram', 'status',
     ];
 
     protected function casts(): array
@@ -43,6 +43,12 @@ final class Produk extends Model
     public function kategori(): BelongsTo
     {
         return $this->belongsTo(Kategori::class, 'kategori_id');
+    }
+
+    /** Dipakai LP-5. Relasi toko harus sudah dimuat; mode ketat menolak pemuatan malas. */
+    public function dimilikiOleh(Pengguna $pengguna): bool
+    {
+        return $this->toko->pemilik_id === $pengguna->id;
     }
 
     /**
