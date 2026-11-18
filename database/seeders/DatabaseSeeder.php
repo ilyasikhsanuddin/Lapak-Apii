@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $seeders = [
+            PeranIzinSeeder::class,
             PenggunaSeeder::class,
             KatalogSeeder::class,
             DompetSeeder::class,
