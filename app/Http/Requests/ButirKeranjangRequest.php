@@ -13,13 +13,13 @@ final class ButirKeranjangRequest extends FormRequest
         return true;
     }
 
-    /** Hanya kuantitas; harga tidak pernah diterima dari klien (LP-6). */
     public function rules(): array
     {
         $maksimum = config('lapak.belanja.kuantitas_maksimum');
 
         return [
             'kuantitas' => ['required', 'integer', 'between:1,'.$maksimum],
+            'catatan' => ['sometimes', 'nullable', 'string', 'max:200'],
         ];
     }
 }

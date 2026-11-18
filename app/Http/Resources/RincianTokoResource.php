@@ -23,6 +23,7 @@ final class RincianTokoResource extends JsonResource
                 'nama' => $baris->namaProduk,
                 'harga_satuan' => $baris->hargaSatuan,
                 'kuantitas' => $baris->kuantitas,
+                'catatan' => $baris->catatan,
                 'subtotal' => $baris->subtotal(),
             ], $this->baris),
             'subtotal' => $this->subtotal,

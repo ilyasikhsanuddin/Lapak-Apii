@@ -12,11 +12,18 @@ final class ButirKeranjang extends Model
     protected $table = 'butir_keranjang';
 
     // Harga tidak disimpan di keranjang.
-    protected $fillable = ['produk_id', 'kuantitas'];
+    protected $fillable = [
+        'produk_id',
+        'kuantitas',
+        'catatan',
+    ];
 
     protected function casts(): array
     {
-        return ['kuantitas' => 'integer'];
+        return [
+            'kuantitas' => 'integer',
+            'catatan' => 'string',
+        ];
     }
 
     /** @return BelongsTo<Produk, $this> */
