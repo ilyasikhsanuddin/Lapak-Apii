@@ -99,3 +99,12 @@
 /app/Services/PemeriksaIzin.php @ahmadshobahrahmadani-ux
 /app/Console/Commands/MatriksIzin.php @ahmadshobahrahmadani-ux
 /database/seeders/PeranIzinSeeder.php @ahmadshobahrahmadani-ux
+
+# B4 Gerbang Akses Keranjang - Rani
+/app/Http/Controllers/KeranjangController.php @vicky123-byte
+/app/Http/Requests/ButirKeranjangRequest.php @vicky123-byte
+/app/Http/Resources/KeranjangResource.php @vicky123-byte
+/app/Models/Keranjang.php @vicky123-byte
+/app/Models/ButirKeranjang.php @vicky123-byte
+/app/Services/LayananKeranjang.php @vicky123-byte
+/tests/Feature/Belanja/KeranjangTest.php @vicky123-byte
