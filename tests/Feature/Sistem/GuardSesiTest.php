@@ -16,7 +16,7 @@ beforeEach(function () {
         ->post('/api/_uji/sensitif', fn () => ['ok' => true]);
 
     Route::middleware(['api', 'auth:sesi'])->get('/api/_uji/galat-log', function () {
-        throw new \RuntimeException('Galat simulasi untuk uji keamanan log.');
+        throw new RuntimeException('Galat simulasi untuk uji keamanan log.');
     });
 
     $this->pengguna = Pengguna::factory()->create();
