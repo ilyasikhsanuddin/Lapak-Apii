@@ -73,3 +73,38 @@
 
 # Pengecualian. Pada CODEOWNERS, pola yang cocok PALING AKHIR yang menang
 /app/Domain/Sesi/ @ilyasikhsanuddin
+
+# Tambahan Sesi 3 — Peran dan Izin
+
+# B1 Pengelolaan Peran Pengguna — Bambang
+/app/Services/PengelolaPeran.php @ilyasikhsanuddin
+/app/Http/Controllers/PeranPenggunaController.php @ilyasikhsanuddin
+/app/Policies/PenggunaPolicy.php @ilyasikhsanuddin
+/app/Console/Commands/BeriPeran.php @ilyasikhsanuddin
+/database/factories/PenggunaFactory.php @ilyasikhsanuddin
+
+# B3 Moderasi Toko — Bagas
+/app/Services/ModerasiToko.php @hill-py
+/app/Http/Controllers/ModerasiTokoController.php @hill-py
+/app/Policies/TokoPolicy.php @hill-py
+
+# B5 Buku Besar — Dimas
+/app/Http/Controllers/BukuBesarController.php @paujihahaha
+
+# A1 Kontrak Izin dan Peran — Sekar
+/app/Enums/NamaPeran.php @ahmadshobahrahmadani-ux
+/app/Enums/NamaIzin.php @ahmadshobahrahmadani-ux
+/app/Models/Peran.php @ahmadshobahrahmadani-ux
+/app/Models/Izin.php @ahmadshobahrahmadani-ux
+/app/Services/PemeriksaIzin.php @ahmadshobahrahmadani-ux
+/app/Console/Commands/MatriksIzin.php @ahmadshobahrahmadani-ux
+/database/seeders/PeranIzinSeeder.php @ahmadshobahrahmadani-ux
+
+# B4 Gerbang Akses Keranjang - Rani
+/app/Http/Controllers/KeranjangController.php @vicky123-byte
+/app/Http/Requests/ButirKeranjangRequest.php @vicky123-byte
+/app/Http/Resources/KeranjangResource.php @vicky123-byte
+/app/Models/Keranjang.php @vicky123-byte
+/app/Models/ButirKeranjang.php @vicky123-byte
+/app/Services/LayananKeranjang.php @vicky123-byte
+/tests/Feature/Belanja/KeranjangTest.php @vicky123-byte
