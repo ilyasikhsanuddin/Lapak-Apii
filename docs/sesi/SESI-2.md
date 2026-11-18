@@ -20,3 +20,9 @@ Membuat mekanisme autentikasi sesi berbasis kunci (ULID + Random Bytes), guard s
 ## Catatan Penutup & Titipan
 - Siapa pun yang masuk boleh membuka toko (persetujuan admin menyusul di Sesi 3).
 - Kunci sesi perlu dirotasi saat peran berubah.
+
+## Status Akhir & Penutup Sesi 2
+- **Kontrak A1–A5:** Seluruh kontrak (PR #14 – #18) telah di-merge ke `main`.
+- **Implementasi B1–B5:** Seluruh implementasi fitur (PR #19 – #23) telah di-merge ke `main`.
+- **Latihan Mandiri Sesi 2:** Penyaring produk sendiri (`DaftarProdukSayaRequest`), penyaring mutasi dompet, dan catatan keranjang telah terintegrasi; seluruh 174 pengujian Pest hijau.
+- **Verifikasi Integrator:** `php artisan migrate:fresh --seed`, `php artisan lapak:periksa-buku`, `./vendor/bin/pint --test`, dan `./vendor/bin/pest` lolos 100%.

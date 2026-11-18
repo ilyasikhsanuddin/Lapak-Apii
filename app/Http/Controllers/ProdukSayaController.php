@@ -5,22 +5,31 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\StatusProduk;
+use App\Http\Requests\DaftarProdukSayaRequest;
 use App\Http\Requests\ProdukSayaRequest;
 use App\Http\Resources\ProdukSayaResource;
 use App\Models\Produk;
 use App\Models\Toko;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 final class ProdukSayaController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(DaftarProdukSayaRequest $request): JsonResponse
     {
         $toko = Toko::query()->milik($request->user())->firstOrFail();
+        $saringan = $request->validated();
 
         $produk = Produk::query()
             ->where('toko_id', $toko->id)
+            ->when($saringan['status'] ?? null, fn (Builder $q, string $status) => $q
+                ->where('status', $status))
+            ->when($saringan['cari'] ?? null, fn (Builder $q, string $kata) => $q->whereRaw(
+                "produk.nama like ? escape '!'",
+                ['%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $kata).'%'],
+            ))
             ->with(['kategori', 'toko'])
             ->orderByDesc('id')
             ->get();

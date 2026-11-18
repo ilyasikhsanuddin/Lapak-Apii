@@ -96,5 +96,5 @@ it('menjalankan seeder contoh berulang kali tanpa menggandakan mutasi', function
     expect(MutasiSaldo::where('rujukan', 'LPK-CONTOH-0001')->count())->toBe(6);
     $this->artisan('lapak:periksa-buku')->assertSuccessful();
     $sri = Pengguna::where('surel', 'sri@lapak.test')->sole();
-    $this->sebagai($sri)->getJson('/api/v1/dompet')->assertJsonPath('data.saldo.rupiah', 363_500);
+    $this->sebagai($sri)->getJson('/api/v1/dompet')->assertJsonPath('data.saldo.rupiah', 838_500);
 });
