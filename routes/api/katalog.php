@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\KatalogController;
+use App\Http\Controllers\ModerasiTokoController;
 use App\Http\Controllers\ProdukSayaController;
 use App\Http\Controllers\TokoSayaController;
 use Illuminate\Support\Facades\Route;
@@ -12,13 +13,42 @@ Route::get('produk/{slug}', [KatalogController::class, 'show'])->name('produk.sh
 Route::get('toko/{slug}', [KatalogController::class, 'toko'])->name('toko.show');
 
 // Toko dan produk milik pengguna yang sedang masuk.
-Route::middleware('auth:sesi')->group(function (): void {
-    Route::get('toko-saya', [TokoSayaController::class, 'show'])->name('toko-saya.show');
-    Route::post('toko-saya', [TokoSayaController::class, 'store'])->name('toko-saya.store');
-    Route::patch('toko-saya', [TokoSayaController::class, 'update'])->name('toko-saya.update');
+// Alamatnya tidak memuat pengenal toko: toko selalu ditentukan sesi.
+Route::middleware('auth:sesi')
+    ->prefix('toko-saya')
+    ->name('toko-saya.')
+    ->group(function (): void {
+        // Melihat dan membenahi toko sendiri tidak menuntut izin khusus: pemilik toko yang masih
+        // menunggu persetujuan belum menjadi penjual, tetapi harus dapat memperbaiki datanya.
+        Route::get('/', [TokoSayaController::class, 'show'])->name('show');
+        Route::patch('/', [TokoSayaController::class, 'update'])->name('update');
 
-    Route::get('toko-saya/produk', [ProdukSayaController::class, 'index'])->name('toko-saya.produk.index');
-    Route::post('toko-saya/produk', [ProdukSayaController::class, 'store'])->name('toko-saya.produk.store');
-    Route::patch('toko-saya/produk/{produk}', [ProdukSayaController::class, 'update'])->name('toko-saya.produk.update');
-    Route::delete('toko-saya/produk/{produk}', [ProdukSayaController::class, 'destroy'])->name('toko-saya.produk.destroy');
-});
+        Route::post('/', [TokoSayaController::class, 'store'])
+            ->middleware('izin:toko.buka')
+            ->name('store');
+
+        // Produk baru dapat dikelola setelah toko disetujui dan pemiliknya menjadi penjual.
+        Route::middleware('izin:produk.kelola')->group(function (): void {
+            Route::get('produk', [ProdukSayaController::class, 'index'])->name('produk.index');
+            Route::post('produk', [ProdukSayaController::class, 'store'])->name('produk.store');
+            Route::patch('produk/{produk}', [ProdukSayaController::class, 'update'])->name('produk.update');
+            Route::delete('produk/{produk}', [ProdukSayaController::class, 'destroy'])
+                ->name('produk.destroy');
+        });
+    });
+
+// Pintu admin atas toko.
+Route::middleware(['auth:sesi', 'izin:toko.moderasi'])
+    ->prefix('admin/toko')
+    ->name('admin.toko.')
+    ->whereNumber('id')
+    ->group(function (): void {
+        Route::get('/', [ModerasiTokoController::class, 'index'])->name('index');
+
+        // Menyetujui toko berarti memberi peran penjual: tindakan sensitif (LP-15).
+        Route::middleware('sesi.segar')->group(function (): void {
+            Route::post('{id}/setujui', [ModerasiTokoController::class, 'setujui'])->name('setujui');
+            Route::post('{id}/tangguhkan', [ModerasiTokoController::class, 'tangguhkan'])
+                ->name('tangguhkan');
+        });
+    });

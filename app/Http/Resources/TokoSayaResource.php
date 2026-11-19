@@ -28,6 +28,8 @@ final class TokoSayaResource extends JsonResource
             ],
             'status' => $this->status->value,
             'terlihat_publik' => $this->status === StatusToko::Aktif,
+            // Alasan penangguhan disampaikan kepada pemilik. Siapa adminnya tidak ikut keluar.
+            'catatan_moderasi' => $this->catatan_moderasi,
             'jumlah_produk' => $this->whenCounted('produk'),
         ];
     }

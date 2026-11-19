@@ -8,7 +8,7 @@ use App\Models\Produk;
 use App\Models\Toko;
 
 it('membuka toko baru dengan status awal menunggu (LP-4)', function () {
-    $budi = Pengguna::factory()->create();
+    $budi = Pengguna::factory()->pembeli()->create();
 
     $this->sebagai($budi)
         ->postJson('/api/v1/toko-saya', [
@@ -25,8 +25,21 @@ it('membuka toko baru dengan status awal menunggu (LP-4)', function () {
         ->assertJsonPath('data.ongkir.rupiah', 12000);
 });
 
+it('menolak pembukaan toko oleh akun yang tidak memegang izin toko.buka', function (string $pemegang) {
+    $this->sebagai(Pengguna::factory()->{$pemegang}()->create())
+        ->postJson('/api/v1/toko-saya', [
+            'nama' => 'Toko Staf',
+            'kota' => 'Surakarta',
+            'ongkir_rupiah' => 10_000,
+        ])
+        ->assertForbidden()
+        ->assertJsonPath('galat.kode', 'DITOLAK');
+
+    expect(Toko::count())->toBe(0);
+})->with(['admin', 'keuangan', 'auditor']);
+
 it('menolak pembukaan toko kedua oleh pengguna yang sudah punya toko (LP-3)', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     Toko::factory()->for($sri, 'pemilik')->create();
 
     $this->sebagai($sri)
@@ -39,7 +52,7 @@ it('menolak pembukaan toko kedua oleh pengguna yang sudah punya toko (LP-3)', fu
 });
 
 it('memperbarui profil toko milik sendiri', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     Toko::factory()->for($sri, 'pemilik')->create([
         'nama' => 'Batik Lama',
         'kota' => 'Surakarta',
@@ -56,8 +69,39 @@ it('memperbarui profil toko milik sendiri', function () {
         ->assertJsonPath('data.ongkir.rupiah', 15000);
 });
 
+it('membolehkan pemilik toko yang masih menunggu membenahi datanya', function () {
+    $tini = Pengguna::factory()->pembeli()->create();
+    Toko::factory()->menunggu()->for($tini, 'pemilik')->create();
+
+    $this->sebagai($tini)->patchJson('/api/v1/toko-saya', ['kota' => 'Karanganyar'])
+        ->assertOk()
+        ->assertJsonPath('data.kota', 'Karanganyar')
+        ->assertJsonPath('data.status', 'menunggu');
+});
+
+it('menolak pemilik toko yang belum disetujui: ia belum menjadi penjual', function () {
+    $tini = Pengguna::factory()->pembeli()->create();
+    Toko::factory()->menunggu()->for($tini, 'pemilik')->create();
+    $kategori = Kategori::factory()->create();
+
+    $this->sebagai($tini)
+        ->postJson('/api/v1/toko-saya/produk', [
+            'kategori_id' => $kategori->id,
+            'nama' => 'Wedang Uwuh',
+            'harga_rupiah' => 25000,
+            'stok' => 10,
+            'berat_gram' => 200,
+            'status' => StatusProduk::Aktif->value,
+        ])
+        ->assertForbidden()
+        ->assertJsonPath('galat.kode', 'DITOLAK');
+
+    $this->getJson('/api/v1/toko-saya/produk')->assertForbidden();
+    expect(Produk::count())->toBe(0);
+});
+
 it('mengelola produk milik sendiri termasuk draf yang tetap tersembunyi di katalog publik (LP-4)', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     $toko = Toko::factory()->for($sri, 'pemilik')->create(['status' => StatusToko::Aktif]);
     $kategori = Kategori::factory()->create();
 
@@ -115,8 +159,30 @@ it('mengelola produk milik sendiri termasuk draf yang tetap tersembunyi di katal
     expect(Produk::find($produkId))->toBeNull();
 });
 
+it('tetap membolehkan penjual mengelola produk selagi tokonya ditangguhkan', function () {
+    $sri = Pengguna::factory()->penjual()->create();
+    $toko = Toko::factory()->for($sri, 'pemilik')->create(['status' => StatusToko::Ditangguhkan]);
+    $kategori = Kategori::factory()->create();
+
+    $id = $this->sebagai($sri)
+        ->postJson('/api/v1/toko-saya/produk', [
+            'kategori_id' => $kategori->id,
+            'nama' => 'Kain Batik Sogan',
+            'harga_rupiah' => 185000,
+            'stok' => 10,
+            'berat_gram' => 300,
+            'status' => StatusProduk::Aktif->value,
+        ])
+        ->assertCreated()
+        ->json('data.id');
+
+    // Boleh dikelola, tetapi tidak tampil: yang menutupnya status toko, bukan izin (LP-4).
+    expect(Produk::find($id))->not->toBeNull();
+    $this->tanpaKunci()->getJson('/api/v1/produk')->assertJsonCount(0, 'data');
+});
+
 it('menolak perubahan atau penghapusan produk milik toko orang lain', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     Toko::factory()->for($sri, 'pemilik')->create();
 
     $produkOrangLain = Produk::factory()->create();
