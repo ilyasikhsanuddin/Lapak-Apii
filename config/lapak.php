@@ -40,4 +40,10 @@ return [
         'masuk_per_ip' => 20,
         'konfirmasi' => 5,
     ],
+
+    'otorisasi' => [
+        // Lama izin seorang pengguna diingat. Perubahan peran melupakannya saat itu juga;
+        // angka ini hanya batas atas bila ada jalur yang lupa memanggil lupakan().
+        'ingat_menit' => (int) env('LAPAK_IZIN_INGAT_MENIT', 5),
+    ],
 ];
