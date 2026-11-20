@@ -6,7 +6,7 @@ use App\Models\Produk;
 use App\Models\Toko;
 
 it('menyaring daftar produk sendiri menurut status dan pencarian kata kunci', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     $toko = Toko::factory()->for($sri, 'pemilik')->create();
 
     Produk::factory()->for($toko)->create([
@@ -38,7 +38,7 @@ it('menyaring daftar produk sendiri menurut status dan pencarian kata kunci', fu
 });
 
 it('menolak nilai status di luar daftar enum yang sah', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     Toko::factory()->for($sri, 'pemilik')->create();
 
     $this->sebagai($sri)
@@ -47,7 +47,7 @@ it('menolak nilai status di luar daftar enum yang sah', function () {
 });
 
 it('memperlakukan karakter pengganti pada pencarian produk sendiri sebagai teks biasa', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     $toko = Toko::factory()->for($sri, 'pemilik')->create();
 
     Produk::factory()->for($toko)->create(['nama' => 'Diskon 50% Batik Tulis']);
