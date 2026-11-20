@@ -7,9 +7,12 @@ use App\Models\Produk;
 use App\Models\Toko;
 
 beforeEach(function () {
-    $this->andi = Pengguna::factory()->create();
+    $this->andi = Pengguna::factory()->pembeli()->create();
+
+    $pemilik = Pengguna::factory()->penjual()->create();
 
     $this->toko = Toko::factory()->create([
+        'pemilik_id' => $pemilik->id,
         'nama' => 'Batik Bu Sri',
         'ongkir_rupiah' => 12_000,
     ]);
@@ -30,7 +33,7 @@ it('menolak pengguna yang belum masuk', function () {
 });
 
 it('menampilkan keranjang kosong untuk pengguna yang sudah masuk', function () {
-    $pengguna = Pengguna::factory()->create();
+    $pengguna = Pengguna::factory()->pembeli()->create();
 
     $this->sebagai($pengguna)
         ->getJson('/api/v1/keranjang')
@@ -42,7 +45,7 @@ it('menampilkan keranjang kosong untuk pengguna yang sudah masuk', function () {
 });
 
 it('menampilkan rincian produk valid dan memisahkan butir bermasalah', function () {
-    $pengguna = Pengguna::factory()->create();
+    $pengguna = Pengguna::factory()->pembeli()->create();
 
     $valid = Produk::factory()->for($this->toko)->create([
         'nama' => 'Kain Batik Cap',
@@ -219,7 +222,7 @@ it('membatasi jumlah produk berbeda dalam satu keranjang', function () {
 });
 
 it('menghapus butir dan mengosongkan keranjang tanpa menyentuh keranjang orang lain', function () {
-    $dewi = Pengguna::factory()->create();
+    $dewi = Pengguna::factory()->pembeli()->create();
 
     $isi = function (Pengguna $pengguna, Produk $produk, int $kuantitas): void {
         $keranjang = Keranjang::query()
