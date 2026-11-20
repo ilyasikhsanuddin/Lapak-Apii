@@ -11,4 +11,8 @@ return [
     'POST api/v1/sesi/konfirmasi' => '*',
     'DELETE api/v1/sesi/{pengenal}' => '*',
     'PUT api/v1/saya/kata-sandi' => '*',
+
+    'GET api/v1/admin/pengguna' => ['admin'],
+    'PUT api/v1/admin/pengguna/{id}/peran/{peran}' => ['admin'],
+    'DELETE api/v1/admin/pengguna/{id}/peran/{peran}' => ['admin'],
 ];
