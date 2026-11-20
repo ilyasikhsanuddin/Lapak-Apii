@@ -32,7 +32,7 @@ if (! function_exists('tarikDanaDari')) {
 }
 
 it('menolak jenis mutasi di luar enum dengan status 422', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
 
     $this->sebagai($sri)->getJson('/api/v1/dompet/mutasi?jenis=bukan_enum')
         ->assertUnprocessable()
@@ -40,7 +40,7 @@ it('menolak jenis mutasi di luar enum dengan status 422', function () {
 });
 
 it('menolak format tanggal yang tidak valid dengan status 422', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
 
     $this->sebagai($sri)->getJson('/api/v1/dompet/mutasi?dari=bukan-tanggal')
         ->assertUnprocessable()
@@ -52,7 +52,7 @@ it('menolak format tanggal yang tidak valid dengan status 422', function () {
 });
 
 it('menolak tanggal terbalik (dari > sampai) dengan status 422', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
 
     $this->sebagai($sri)->getJson('/api/v1/dompet/mutasi?dari=2026-11-20&sampai=2026-11-10')
         ->assertUnprocessable()
@@ -60,7 +60,7 @@ it('menolak tanggal terbalik (dari > sampai) dengan status 422', function () {
 });
 
 it('menyaring mutasi menurut jenis mutasi', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     lepasDanaKe($sri, 500_000, 'LPK-LATIHAN-001');
     tarikDanaDari($sri, 200_000, 'LPK-LATIHAN-002');
 
@@ -80,7 +80,7 @@ it('menyaring mutasi menurut jenis mutasi', function () {
 });
 
 it('menyaring mutasi menurut rentang tanggal dari dan sampai', function () {
-    $sri = Pengguna::factory()->create();
+    $sri = Pengguna::factory()->penjual()->create();
     lepasDanaKe($sri, 100_000, 'LPK-LATIHAN-TGL-01');
     lepasDanaKe($sri, 200_000, 'LPK-LATIHAN-TGL-02');
     lepasDanaKe($sri, 300_000, 'LPK-LATIHAN-TGL-03');
