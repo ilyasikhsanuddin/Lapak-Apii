@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\NamaIzin;
 use App\Enums\StatusAkun;
 use App\Models\Pengguna;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 function dataRegistrasi(array $timpa = []): array
@@ -92,4 +94,34 @@ it('menghitung batas registrasi per alamat IP, bukan secara global', function ()
     $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])
         ->postJson('/api/v1/registrasi', [])
         ->assertUnprocessable();
+});
+
+it('memberi peran pembeli kepada setiap pendaftar, dan hanya itu', function () {
+    $this->postJson('/api/v1/registrasi', dataRegistrasi())
+        ->assertCreated()
+        ->assertJsonPath('data.peran', ['pembeli']);
+
+    $dewi = Pengguna::sole();
+
+    expect($dewi->punyaIzin(NamaIzin::KeranjangKelola))->toBeTrue()
+        ->and($dewi->punyaIzin(NamaIzin::ProdukKelola))->toBeFalse();
+});
+
+it('mengabaikan peran yang diselipkan klien saat mendaftar', function (mixed $peran) {
+    $this->postJson('/api/v1/registrasi', dataRegistrasi(['peran' => $peran]))
+        ->assertCreated()
+        ->assertJsonPath('data.peran', ['pembeli']);
+})->with([
+    'teks' => ['admin'],
+    'larik' => [['admin', 'keuangan']],
+]);
+
+it('tidak meninggalkan akun tanpa peran bila pemberian peran gagal', function () {
+    DB::table('peran')->delete(); // meniru server yang dimigrasi tanpa PeranIzinSeeder
+
+    $this->postJson('/api/v1/registrasi', dataRegistrasi())
+        ->assertStatus(500)
+        ->assertJsonPath('galat.kode', 'GALAT_SERVER');
+
+    expect(Pengguna::count())->toBe(0);
 });
