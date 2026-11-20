@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PeranPenggunaController;
 use App\Http\Controllers\RegistrasiController;
 use App\Http\Controllers\UbahKataSandiController;
 use Illuminate\Support\Facades\Route;
@@ -18,3 +19,20 @@ Route::middleware('auth:sesi')->group(function (): void {
         ->middleware('sesi.segar')
         ->name('saya.kata-sandi');
 });
+
+// Pintu admin atas peran. Urutannya: kunci sah (401), memegang izin (403), barulah yang lain.
+Route::middleware(['auth:sesi', 'izin:peran.kelola'])
+    ->prefix('admin/pengguna')
+    ->name('admin.pengguna.')
+    ->whereNumber('id')
+    ->group(function (): void {
+        Route::get('/', [PeranPenggunaController::class, 'index'])->name('index');
+
+        // Mengubah kewenangan orang lain adalah tindakan sensitif (LP-15).
+        Route::middleware('sesi.segar')->group(function (): void {
+            Route::put('{id}/peran/{peran}', [PeranPenggunaController::class, 'beri'])
+                ->name('peran.beri');
+            Route::delete('{id}/peran/{peran}', [PeranPenggunaController::class, 'cabut'])
+                ->name('peran.cabut');
+        });
+    });
