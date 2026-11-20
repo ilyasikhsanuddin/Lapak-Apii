@@ -6,14 +6,22 @@ namespace App\Services;
 
 use App\Enums\NamaIzin;
 use App\Models\Pengguna;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Satu-satunya tempat pertanyaan "pengguna ini punya izin itu?" dijawab (LP-2).
- * Jawabannya selalu dibaca dari basis data: gabungan izin dari seluruh peran yang dipegang.
+ *
+ * Jawabannya diingat sebentar supaya setiap permintaan tidak mengulang gabungan tiga tabel.
+ * Ingatan itu harus dilupakan pada dua kejadian:
+ *   - peran seorang pengguna berubah        -> lupakan($pengguna), dipanggil PengelolaPeran;
+ *   - pemetaan peran ke izin berubah        -> lupakanSemua(), dipanggil PeranIzinSeeder.
+ * Batas waktu ingatan hanyalah jaring pengaman bila salah satu pemanggilan itu terlewat.
  */
 final class PemeriksaIzin
 {
+    private const KUNCI_GENERASI = 'izin:generasi';
+
     public function punya(Pengguna $pengguna, NamaIzin $izin): bool
     {
         return in_array($izin->value, $this->daftar($pengguna), true);
@@ -23,6 +31,30 @@ final class PemeriksaIzin
      * @return list<string> nama izin, urut abjad, tanpa kembaran
      */
     public function daftar(Pengguna $pengguna): array
+    {
+        return Cache::remember(
+            $this->kunci($pengguna),
+            now()->addMinutes(config('lapak.otorisasi.ingat_menit')),
+            fn (): array => $this->bacaDariBasisData($pengguna),
+        );
+    }
+
+    public function lupakan(Pengguna $pengguna): void
+    {
+        Cache::forget($this->kunci($pengguna));
+    }
+
+    /**
+     * Menaikkan nomor generasi. Seluruh ingatan lama memakai nomor sebelumnya pada kuncinya,
+     * sehingga tidak pernah terbaca lagi dan habis sendiri oleh batas waktunya.
+     */
+    public function lupakanSemua(): void
+    {
+        Cache::forever(self::KUNCI_GENERASI, $this->generasi() + 1);
+    }
+
+    /** @return list<string> */
+    private function bacaDariBasisData(Pengguna $pengguna): array
     {
         return DB::table('izin')
             ->join('peran_izin', 'peran_izin.izin_id', '=', 'izin.id')
@@ -34,13 +66,13 @@ final class PemeriksaIzin
             ->all();
     }
 
-    /**
-     * Dipanggil setiap kali peran seorang pengguna berubah.
-     * Belum melakukan apa pun karena belum ada yang diingat; titik kait ini disepakati sejak kontrak
-     * supaya pemanggilnya sudah benar ketika cache izin ditambahkan.
-     */
-    public function lupakan(Pengguna $pengguna): void
+    private function kunci(Pengguna $pengguna): string
     {
-        //
+        return "izin:{$this->generasi()}:{$pengguna->id}";
+    }
+
+    private function generasi(): int
+    {
+        return (int) Cache::get(self::KUNCI_GENERASI, 1);
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\NamaIzin;
 use App\Enums\NamaPeran;
 use App\Models\Izin;
 use App\Models\Peran;
+use App\Services\PemeriksaIzin;
 use Illuminate\Database\Seeder;
 
 /**
@@ -34,5 +35,8 @@ class PeranIzinSeeder extends Seeder
             // sync(): izin yang tidak lagi terdaftar ikut dilepas, bukan hanya yang baru ditambahkan.
             $peran->izin()->sync(array_map(fn (NamaIzin $i) => $izin[$i->value], $nama->izinBawaan()));
         }
+
+        // Pemetaan mungkin baru saja berubah: izin yang telanjur diingat tidak boleh dipakai lagi.       app(PemeriksaIzin::class)->lupakanSemua();
+        app(PemeriksaIzin::class)->lupakanSemua();
     }
 }
