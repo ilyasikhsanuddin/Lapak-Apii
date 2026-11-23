@@ -134,15 +134,21 @@ it('mengelola produk milik sendiri termasuk draf yang tetap tersembunyi di katal
         ->assertOk()
         ->assertJsonCount(0, 'data');
 
-    // 4. Ubah status menjadi aktif & perbarui stok
+    // 4. Ubah status menjadi aktif & perbarui stok lewat pintu penyesuaian stok
     $this->sebagai($sri)
         ->patchJson("/api/v1/toko-saya/produk/{$produkId}", [
             'status' => StatusProduk::Aktif->value,
-            'stok' => 8,
         ])
         ->assertOk()
         ->assertJsonPath('data.status', 'aktif')
-        ->assertJsonPath('data.terlihat_publik', true)
+        ->assertJsonPath('data.terlihat_publik', true);
+
+    $this->sebagai($sri)
+        ->withHeader('Idempotency-Key', 'ubah-stok-produk-saya-1')
+        ->postJson("/api/v1/toko-saya/produk/{$produkId}/stok", [
+            'selisih' => 3,
+        ])
+        ->assertOk()
         ->assertJsonPath('data.stok', 8);
 
     // 5. Kini tampil di katalog publik

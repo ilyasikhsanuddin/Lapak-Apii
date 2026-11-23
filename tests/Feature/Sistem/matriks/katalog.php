@@ -11,6 +11,7 @@ return [
     'GET api/v1/toko-saya/produk' => ['penjual'],
     'POST api/v1/toko-saya/produk' => ['penjual'],
     'PATCH api/v1/toko-saya/produk/{produk}' => ['penjual'],
+    'POST api/v1/toko-saya/produk/{id}/stok' => ['penjual'],
     'DELETE api/v1/toko-saya/produk/{produk}' => ['penjual'],
     'GET api/v1/admin/toko' => ['admin'],
     'POST api/v1/admin/toko/{id}/setujui' => ['admin'],

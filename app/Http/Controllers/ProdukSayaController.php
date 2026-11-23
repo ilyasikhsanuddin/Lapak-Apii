@@ -6,10 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusProduk;
 use App\Http\Requests\DaftarProdukSayaRequest;
+use App\Http\Requests\PenyesuaianStokRequest;
 use App\Http\Requests\ProdukSayaRequest;
 use App\Http\Resources\ProdukSayaResource;
 use App\Models\Produk;
 use App\Models\Toko;
+use App\Services\PenjagaStok;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,8 +26,7 @@ final class ProdukSayaController extends Controller
 
         $produk = Produk::query()
             ->where('toko_id', $toko->id)
-            ->when($saringan['status'] ?? null, fn (Builder $q, string $status) => $q
-                ->where('status', $status))
+            ->when($saringan['status'] ?? null, fn (Builder $q, string $status) => $q->where('status', $status))
             ->when($saringan['cari'] ?? null, fn (Builder $q, string $kata) => $q->whereRaw(
                 "produk.nama like ? escape '!'",
                 ['%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $kata).'%'],
@@ -74,6 +75,17 @@ final class ProdukSayaController extends Controller
         $produk->load('kategori');
 
         return $this->sukses(ProdukSayaResource::make($produk));
+    }
+
+    public function stok(PenyesuaianStokRequest $request, PenjagaStok $penjaga, int $id): JsonResponse
+    {
+        $produk = Produk::query()->with('toko')->findOrFail($id);
+        abort_unless($produk->dimilikiOleh($request->user()), 404);
+
+        $diperbarui = $penjaga->sesuaikan($produk->id, (int) $request->validated('selisih'));
+        $diperbarui->load(['kategori', 'toko']);
+
+        return $this->sukses(ProdukSayaResource::make($diperbarui));
     }
 
     public function destroy(Request $request, Produk $produk): JsonResponse
