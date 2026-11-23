@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Mutasi untuk staf: sama dengan yang dilihat pemilik dompet, ditambah nomor baris dan kelompok.
+ * Mutasi untuk staf: sama dengan yang dilihat pemilik dompet, ditambah nomor baris, kelompok,
+ * serta kode dompet ketika relasinya dimuat.
  *
  * @mixin MutasiSaldo
  */
@@ -20,6 +21,11 @@ final class MutasiBukuBesarResource extends JsonResource
         return [
             'id' => $this->id,
             'kelompok' => $this->kelompok,
+            'dompet' => $this->whenLoaded('dompet', fn () => [
+                'id' => $this->dompet->id,
+                'kode' => $this->dompet->kode,
+                'jenis' => $this->dompet->jenis->value,
+            ]),
             ...MutasiResource::make($this->resource)->toArray($request),
         ];
     }
