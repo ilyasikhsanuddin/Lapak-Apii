@@ -65,3 +65,17 @@ ditulis. `PeranIzinSeeder` menyalinnya ke basis data. Tidak ada peran yang memeg
 | GET | `/api/v1/kategori` | Daftar kategori | Publik |
 | GET | `/api/v1/produk` | Daftar produk | Publik |
 | GET | `/api/v1/toko/{slug}` | Detail toko | Publik |
+## Idempotensi
+
+- Setiap permintaan yang mengubah uang atau stok wajib membawa header `Idempotency-Key` (LP-11):
+  16 sampai 64 huruf, angka, garis bawah, atau tanda hubung. UUID memenuhi syarat ini.
+- Klien membuat SATU kunci untuk satu niat, misalnya satu kali menekan tombol bayar, dan memakai
+  kunci yang sama setiap kali mengulang permintaan itu karena jaringan putus atau batas waktu habis.
+- Permintaan pertama yang berhasil (2xx) dicatat bersama responsnya. Pengulangan dengan kunci dan
+  badan yang sama menerima respons yang sama, ditandai header `Idempotency-Replayed: true`, dan
+  tidak berefek lagi.
+- Permintaan yang gagal tidak meninggalkan catatan. Setelah sebabnya dibetulkan, kunci yang sama
+  boleh dipakai lagi.
+- Kunci yang sama dengan badan yang berbeda dijawab 422 `LP-11`. Kunci berlaku per pengguna.
+- Catatan kunci dan seluruh perubahan data berada dalam satu transaksi basis data. Rute yang
+  memasang `idempoten` karenanya tidak boleh memanggil layanan luar di dalam controller-nya.
