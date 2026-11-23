@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PeranPenggunaController;
 use App\Http\Controllers\RegistrasiController;
+use App\Http\Controllers\StatusAkunController;
 use App\Http\Controllers\UbahKataSandiController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,4 +36,16 @@ Route::middleware(['auth:sesi', 'izin:peran.kelola'])
             Route::delete('{id}/peran/{peran}', [PeranPenggunaController::class, 'cabut'])
                 ->name('peran.cabut');
         });
+    });
+
+// Pintu admin atas status akun. Menangguhkan akun adalah tindakan sensitif (LP-15).
+Route::middleware(['auth:sesi', 'izin:akun.tangguhkan', 'sesi.segar'])
+    ->prefix('admin/pengguna')
+    ->name('admin.pengguna.')
+    ->whereNumber('id')
+    ->group(function (): void {
+        Route::post('{id}/tangguhkan', [StatusAkunController::class, 'tangguhkan'])
+            ->name('tangguhkan');
+        Route::post('{id}/pulihkan', [StatusAkunController::class, 'pulihkan'])
+            ->name('pulihkan');
     });
