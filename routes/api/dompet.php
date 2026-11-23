@@ -23,4 +23,5 @@ Route::middleware(['auth:sesi', 'izin:buku-besar.lihat', 'sesi.segar'])
     ->group(function (): void {
         Route::get('dompet', [BukuBesarController::class, 'index'])->name('dompet.index');
         Route::get('dompet/{id}/mutasi', [BukuBesarController::class, 'mutasi'])->name('dompet.mutasi');
+        Route::get('kelompok/{kelompok}', [BukuBesarController::class, 'kelompok'])->name('kelompok.show');
     });
