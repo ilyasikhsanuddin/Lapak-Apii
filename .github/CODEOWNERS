@@ -108,3 +108,47 @@
 /app/Models/ButirKeranjang.php @vicky123-byte
 /app/Services/LayananKeranjang.php @vicky123-byte
 /tests/Feature/Belanja/KeranjangTest.php @vicky123-byte
+
+# Sesi 4: Keamanan Transaksi
+
+# A1 Kontrak Checkout & Pembayaran — Rani
+/app/Models/Checkout.php @vicky123-byte
+/app/Models/Pesanan.php @vicky123-byte
+/app/Models/ButirPesanan.php @vicky123-byte
+/app/Http/Controllers/CheckoutController.php @vicky123-byte
+/app/Services/LayananCheckout.php @vicky123-byte
+/app/Services/MesinStatusPesanan.php @vicky123-byte
+/app/Console/Commands/BatalkanKedaluwarsa.php @vicky123-byte
+
+# A2 Penjaga Stok — Bagas
+/app/Services/PenjagaStok.php @hill-py
+/app/Http/Controllers/StokController.php @hill-py
+
+# A3 Idempotensi — Sekar
+/app/Http/Middleware/Idempoten.php @ahmadshobahrahmadani-ux
+/app/Models/KunciIdempotensi.php @ahmadshobahrahmadani-ux
+
+# A4 Pembayaran & Webhook — Dimas
+/app/Models/Pembayaran.php @paujihahaha
+/app/Services/LayananPembayaran.php @paujihahaha
+/app/Services/GembokCheckout.php @paujihahaha
+/app/Http/Controllers/WebhookController.php @paujihahaha
+/app/Console/Commands/SimulasiBayar.php @paujihahaha
+
+# A5 Sesi & Alamat (Bambang)
+/app/Models/Alamat.php @ilyasikhsanuddin
+/app/Services/BukuAlamat.php @ilyasikhsanuddin
+/app/Http/Controllers/AlamatController.php @ilyasikhsanuddin
+
+# Rute
+/routes/api/checkout.php @vicky123-byte
+/routes/api/pembayaran.php @paujihahaha
+/routes/api/webhook.php @paujihahaha
+/routes/api/alamat.php @ilyasikhsanuddin
+
+# Pengujian
+/tests/Feature/Checkout/ @vicky123-byte
+/tests/Feature/Balapan/ @ahmadshobahrahmadani-ux
+
+# Migration Sesi 4 (dimiliki oleh domain masing-masing, tapi dipetakan ke D4 karena ada di folder 4000)
+/database/migrations/*_4000*.php @paujihahaha
