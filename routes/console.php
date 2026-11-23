@@ -10,3 +10,8 @@ Artisan::command('inspire', function () {
 
 // Sesi yang sudah lama mati dibuang setiap dini hari.
 Schedule::command('lapak:pangkas-sesi')->dailyAt('03:15');
+
+// Checkout yang melewati batas pembayaran diperiksa setiap 10 menit.
+Schedule::command('lapak:batalkan-kedaluwarsa')
+    ->everyTenMinutes()
+    ->withoutOverlapping();

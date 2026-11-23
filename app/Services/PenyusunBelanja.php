@@ -13,26 +13,27 @@ use App\Domain\Uang;
 use App\Exceptions\ProdukTidakDapatDibeli;
 use App\Models\Pengguna;
 use App\Models\Produk;
+use Illuminate\Support\Collection;
 
 final class PenyusunBelanja
 {
     /**
-     * Memilah butir menjadi pesanan yang valid dan butir bermasalah.
-     *
      * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
      * @return array{list<RincianToko>, list<ButirBermasalah>}
      */
-    public function pilah(array $butir, ?Pengguna $pembeli = null): array
-    {
+    public function pilah(
+        array $butir,
+        ?Pengguna $pembeli = null,
+        ?Collection $diTangan = null,
+    ): array {
         $diminta = collect($butir)->pluck('kuantitas', 'produk_id');
         $catatanPerProduk = collect($butir)->pluck('catatan', 'produk_id');
 
-        $produk = Produk::query()
+        $produk = ($diTangan ?? Produk::query()
             ->tampil()
             ->with('toko')
             ->whereIn('id', $diminta->keys())
-            ->get()
-            ->keyBy('id');
+            ->get())->keyBy('id');
 
         $baris = [];
         $toko = [];
@@ -41,7 +42,7 @@ final class PenyusunBelanja
         foreach ($diminta as $produkId => $kuantitas) {
             $barang = $produk->get($produkId);
 
-            if ($barang === null) {
+            if ($barang === null || ! $barang->sedangTampil()) {
                 $bermasalah[] = new ButirBermasalah(
                     (int) $produkId,
                     (int) $kuantitas,
@@ -98,14 +99,15 @@ final class PenyusunBelanja
     }
 
     /**
-     * Menyusun belanja dengan aturan ketat.
-     *
      * @param  list<array{produk_id: int, kuantitas: int, catatan?: ?string}>  $butir
      * @return list<RincianToko>
      */
-    public function susun(array $butir, ?Pengguna $pembeli = null): array
-    {
-        [$rincian, $bermasalah] = $this->pilah($butir, $pembeli);
+    public function susun(
+        array $butir,
+        ?Pengguna $pembeli = null,
+        ?Collection $diTangan = null,
+    ): array {
+        [$rincian, $bermasalah] = $this->pilah($butir, $pembeli, $diTangan);
 
         $tidakTersedia = array_filter(
             $bermasalah,
