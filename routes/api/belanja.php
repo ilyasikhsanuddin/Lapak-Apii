@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\PesananSayaController;
 use App\Http\Controllers\SimulasiBelanjaController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +26,17 @@ Route::middleware(['auth:sesi', 'izin:keranjang.kelola'])
         Route::delete('butir/{produkId}', [KeranjangController::class, 'hapusButir'])
             ->whereNumber('produkId')
             ->name('hapus');
+    });
+
+Route::middleware(['auth:sesi', 'izin:pesanan.buat'])
+    ->group(function (): void {
+        Route::post('checkout', CheckoutController::class)
+            ->middleware(['throttle:transaksi', 'idempoten'])
+            ->name('checkout');
+
+        Route::get('pesanan', [PesananSayaController::class, 'index'])
+            ->name('pesanan.index');
+
+        Route::get('pesanan/{nomor}', [PesananSayaController::class, 'show'])
+            ->name('pesanan.show');
     });

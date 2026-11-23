@@ -24,11 +24,14 @@ final class PenjagaStok
      */
     public function ambil(array $idProduk): Collection
     {
-        // BELUM AMAN bila dua pembeli datang bersamaan: baris dibaca tanpa dikunci.
-        // Versi kontrak ini benar untuk satu pembeli pada satu waktu. Dikunci pada jendela B.
+        $idProduk = array_values(array_unique($idProduk));
+        sort($idProduk);
+
         return Produk::query()
             ->with('toko')
             ->whereIn('id', $idProduk)
+            ->orderBy('id')
+            ->lockForUpdate()
             ->get()
             ->keyBy('id');
     }
