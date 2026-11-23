@@ -44,6 +44,21 @@
             "key": "kunci_andi",
             "type": "secret",
             "value": ""
+        },
+        {
+            "key": "kunci_wulan",
+            "type": "secret",
+            "value": ""
+        },
+        {
+            "key": "kunci_eko",
+            "type": "secret",
+            "value": ""
+        },
+        {
+            "key": "kunci_dewi",
+            "type": "secret",
+            "value": ""
         }
     ],
     "info": {

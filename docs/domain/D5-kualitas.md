@@ -16,4 +16,5 @@ Menjawab tiga pertanyaan: siapa boleh melakukan apa, siapa yang sudah melakukan 
 - **`GET /api/v1/health`:** pemeriksaan bahwa middleware D5 aktif.
 - **Gerbang kualitas:** CI dengan Pint dan Pest, uji arsitektur, uji asap seeder, dan uji kontrak galat.
 - **Pemilik berkas bersama:** `bootstrap/app.php`, `app/Providers/AppServiceProvider.php`, `config/lapak.php`, `composer.json`, `.github/`, dan `database/seeders/DatabaseSeeder.php`.
-- **Rencana:** tabel `peran` dan `izin` untuk otorisasi, `kunci_idempotensi` untuk permintaan ulang yang aman, dan `log_audit` dengan rantai hash.- **Matriks Otorisasi (`tests/Feature/Sistem/matriks/<domain>.php` & `MatriksOtorisasiTest`):** Peta hak akses per rute terlindung (`GET`/`POST`/`PUT`/`PATCH`/`DELETE`) yang memverifikasi penolakan `403 DITOLAK` bagi setiap peran secara otomatis di CI (Sesi 3).
+- **Rencana:** tabel `peran` dan `izin` untuk otorisasi, `kunci_idempotensi` untuk permintaan ulang yang aman, dan `log_audit` dengan rantai hash.
+- **Matriks Otorisasi:** berkas `belanja.php`, `dompet.php`, `identitas.php`, dan `katalog.php` di `tests/Feature/Sistem/matriks/` menyimpan daftar hak akses rute terlindung setiap domain. `MatriksOtorisasiTest` menguji akses berdasarkan peran dan memastikan penolakan `403 DITOLAK` secara otomatis di CI (Sesi 3).
