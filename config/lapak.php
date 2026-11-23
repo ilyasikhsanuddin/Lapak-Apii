@@ -46,4 +46,12 @@ return [
         // angka ini hanya batas atas bila ada jalur yang lupa memanggil lupakan().
         'ingat_menit' => (int) env('LAPAK_IZIN_INGAT_MENIT', 5),
     ],
+
+    'transaksi' => [
+        // LP-15: checkout di atas nilai ini menuntut sesi segar.
+        'batas_segar_rupiah' => (int) env('LAPAK_BATAS_SEGAR_RUPIAH', 2_000_000),
+        // Permintaan per menit, per sesi, untuk pintu yang mengubah uang atau stok.
+        'laju_per_menit' => 10,
+        'alamat_maksimum' => 5,
+    ],
 ];
