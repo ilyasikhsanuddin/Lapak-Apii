@@ -32,6 +32,7 @@ Route::middleware('auth:sesi')
             Route::get('produk', [ProdukSayaController::class, 'index'])->name('produk.index');
             Route::post('produk', [ProdukSayaController::class, 'store'])->name('produk.store');
             Route::patch('produk/{produk}', [ProdukSayaController::class, 'update'])->name('produk.update');
+            Route::post('produk/{id}/stok', [ProdukSayaController::class, 'stok'])->whereNumber('id')->middleware('idempoten')->name('produk.stok');
             Route::delete('produk/{produk}', [ProdukSayaController::class, 'destroy'])
                 ->name('produk.destroy');
         });
