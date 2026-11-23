@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $seeders = [
             PeranIzinSeeder::class,
             PenggunaSeeder::class,
+            AlamatSeeder::class,
             KatalogSeeder::class,
             DompetSeeder::class,
             ContohMutasiSeeder::class,

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\PeranPenggunaController;
 use App\Http\Controllers\RegistrasiController;
 use App\Http\Controllers\StatusAkunController;
@@ -48,4 +49,13 @@ Route::middleware(['auth:sesi', 'izin:akun.tangguhkan', 'sesi.segar'])
             ->name('tangguhkan');
         Route::post('{id}/pulihkan', [StatusAkunController::class, 'pulihkan'])
             ->name('pulihkan');
+    });
+
+// Alamat kirim milik pengguna sesi. Izin pesanan.buat lahir bersama rute ini.
+Route::middleware(['auth:sesi', 'izin:pesanan.buat'])
+    ->prefix('alamat')
+    ->name('alamat.')
+    ->whereNumber('id')
+    ->group(function (): void {
+        Route::get('/', [AlamatController::class, 'index'])->name('index');
     });
