@@ -56,3 +56,4 @@ Pada Sesi 1, pekerjaan D3 mencakup skema keranjang, model, perhitungan belanja, 
 Endpoint keranjang yang terikat pada pengguna baru dikembangkan pada Sesi 2.
 
 Implementasi D3 harus menjaga agar logika perhitungan belanja berada di `App\Domain\Belanja`, bukan dicampur dengan controller.
+| D4, D5 | `App\Domain\Pesanan\AturanTransisi`, `StatusPesanan`, dan `PelakuPesanan` | Kontrak PHP murni daur hidup status pesanan (`LP-10`) yang siap dipakai pada alur checkout dan pelepasan dana (Sesi 3) |

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\DaftarTokoRequest;
 use App\Http\Requests\TangguhkanTokoRequest;
+use App\Http\Requests\TolakTokoRequest;
 use App\Http\Resources\TokoModerasiResource;
 use App\Models\Toko;
 use App\Services\ModerasiToko;
@@ -19,7 +20,7 @@ final class ModerasiTokoController extends Controller
 {
     public function __construct(private readonly ModerasiToko $moderasi) {}
 
-    /** GET /admin/toko: seluruh toko, termasuk yang menunggu dan ditangguhkan. */
+    /** GET /admin/toko: seluruh toko, termasuk yang menunggu, ditolak, dan ditangguhkan. */
     public function index(DaftarTokoRequest $request): JsonResponse
     {
         $halaman = Toko::query()
@@ -39,6 +40,18 @@ final class ModerasiTokoController extends Controller
     public function setujui(Request $request, int $id): JsonResponse
     {
         $toko = $this->moderasi->setujui($this->toko($id), $request->user());
+
+        return $this->sukses(TokoModerasiResource::make($toko->load('pemilik')));
+    }
+
+    /** POST /admin/toko/{id}/tolak */
+    public function tolak(TolakTokoRequest $request, int $id): JsonResponse
+    {
+        $toko = $this->moderasi->tolak(
+            $this->toko($id),
+            $request->user(),
+            $request->validated('alasan'),
+        );
 
         return $this->sukses(TokoModerasiResource::make($toko->load('pemilik')));
     }

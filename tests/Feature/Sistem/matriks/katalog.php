@@ -14,5 +14,6 @@ return [
     'DELETE api/v1/toko-saya/produk/{produk}' => ['penjual'],
     'GET api/v1/admin/toko' => ['admin'],
     'POST api/v1/admin/toko/{id}/setujui' => ['admin'],
+    'POST api/v1/admin/toko/{id}/tolak' => ['admin'],
     'POST api/v1/admin/toko/{id}/tangguhkan' => ['admin'],
 ];

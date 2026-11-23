@@ -1,21 +1,19 @@
-﻿# Keputusan Sesi 2: Autentikasi dan Otorisasi
+# Keputusan Sesi 3: RBAC Berbasis Izin, Gate::before, dan Policy
 
-## Kesamaan dengan Laravel Sanctum
+## Persamaan dengan `spatie/laravel-permission`
 
-Mekanisme sesi Lapak dan Laravel Sanctum sama-sama digunakan untuk melindungi API menggunakan kredensial yang disertakan pada permintaan. Keduanya memungkinkan server mengenali pengguna, membatasi akses berdasarkan autentikasi, serta mencabut akses ketika sesi atau token tidak lagi berlaku.
+Rancangan otorisasi Lapak dan paket `spatie/laravel-permission` sama-sama memodelkan kontrol akses berbasis peran dan izin (*RBAC*) menggunakan empat tabel relasi (`peran`, `izin`, `peran_izin`, dan `pengguna_peran`) sehingga satu pengguna dapat memegang lebih dari satu peran dan izinnya merupakan gabungan dari seluruh peran tersebut[cite: 6, 15, 73]. Keduanya juga menyandarkan pemeriksaan gerbang pada middleware rute berbasis nama izin (bukan nama peran), menyimpan hasil pembacaan izin di *cache* untuk menghindari kueri berulang, serta menghapus *cache* tersebut ketika peran atau pemetaan izin berubah[cite: 5, 18, 39, 73].
 
-## Fitur Sanctum yang Belum Dimiliki Lapak
+## Mengapa Lapak Tidak Memakai `Gate::before` untuk Admin
 
-Laravel Sanctum menyediakan autentikasi SPA menggunakan cookie dan perlindungan CSRF, serta personal access token dengan abilities untuk membatasi tindakan yang boleh dilakukan. Sanctum juga menyediakan pengelolaan dan pencabutan token.
+`Gate::before` yang mengembalikan `true` bagi peran `admin` akan menjadikan admin sebagai *super admin* yang otomatis lolos seluruh pemeriksaan izin dan *Policy*[cite: 6, 73]. Lapak sengaja menolaknya demi menegakkan **asas pemisahan tugas** (*separation of duties*)[cite: 6, 73]:
 
-Lapak menggunakan kunci sesi sendiri berbasis ULID dan random bytes, dengan pencatatan sesi di basis data, pemeriksaan sesi, sesi segar, dan pembatasan laju. Lapak belum memiliki seluruh integrasi SPA dan kemampuan token seperti Sanctum.
+1. **Membatasi dampak peretasan satu akun:** Tidak ada satu peran pun yang memegang seluruh izin; admin mengurus pengguna dan moderasi toko (`peran.kelola`, `toko.moderasi`), tetapi tidak memiliki izin melihat uang (`buku-besar.lihat`) maupun berbelanja/berjualan memakai akun dinasnya (`keranjang.kelola`, `toko.buka`)[cite: 6, 8, 9, 15, 73].
+2. **Mencegah pengabaian aturan benturan kepentingan:** Jika `Gate::before` meloloskan admin pada semua kemampuan, pemeriksaan *Policy* tingkat objek ikut terlewati sehingga admin dapat mengubah perannya sendiri atau menyetujui tokonya sendiri[cite: 7, 73].
 
-## Kapan Memilih JWT atau OAuth 2.0?
+## Aturan Lapak yang Memerlukan *Policy* (Tidak Cukup dengan Peran Saja)
 
-**JWT** dipertimbangkan apabila sistem membutuhkan token mandiri berisi klaim terverifikasi yang dapat diperiksa oleh beberapa layanan tanpa selalu membaca sesi dari basis data. Penggunaan JWT perlu mempertimbangkan masa berlaku, rotasi kunci, dan pencabutan token.
+Peran dan middleware `izin:<nama>` hanya menjawab jenis tindakan yang boleh dilakukan secara umum, tetapi tidak mengetahui siapa pemilik atau sasaran objek yang sedang diakses[cite: 5, 6, 73]. Lapak membutuhkan *Policy* untuk menegakkan larangan **benturan kepentingan** atas objek tertentu (dan mengembalikan `403 DITOLAK` karena pemanggil memang berhak mengetahui objek tersebut ada)[cite: 6, 7, 73]:
 
-**OAuth 2.0** dipertimbangkan apabila Lapak perlu memberikan akses kepada aplikasi pihak ketiga atas nama pengguna, misalnya untuk integrasi mitra. OAuth 2.0 menyediakan alur otorisasi dan pembatasan akses menggunakan scope. Token OAuth dapat berbentuk JWT maupun opaque token.
-
-## Keputusan Tim
-
-Untuk kebutuhan Lapak saat ini, mekanisme sesi berbasis kunci tetap digunakan karena kebutuhan utama adalah autentikasi pengguna dan pengelolaan sesi perangkat. JWT atau OAuth 2.0 baru dipertimbangkan ketika kebutuhan integrasi layanan dan pihak ketiga muncul.
+- **`PenggunaPolicy::ubahPeran`:** Pemegang izin `peran.kelola` tetap dilarang mengubah perannya sendiri (`$pelaku->is($sasaran)`), sehingga admin tidak dapat menambahkan peran `keuangan` ke akunnya sendiri maupun mencabut status adminnya sendiri[cite: 7, 32, 33, 73].
+- **`TokoPolicy::moderasi`:** Pemegang izin `toko.moderasi` tetap dilarang menyetujui, menolak, atau menangguhkan toko miliknya sendiri (`$toko->pemilik_id !== $pelaku->id`) apabila akun admin tersebut juga mendaftar sebagai pemilik toko[cite: 7, 48, 73].

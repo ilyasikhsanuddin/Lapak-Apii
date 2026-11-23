@@ -52,3 +52,5 @@ Siapa yang sedang berbicara dengan sistem, dan apa buktinya?
 | D2 | Akun contoh dari `PenggunaSeeder` (misalnya `sri@lapak.test`) | `KatalogSeeder` mencari pemilik toko berdasarkan surel |
 | Semua | Provider autentikasi `Pengguna` pada `config/auth.php` | Guard sesi Sesi 2 bergantung padanya |
 | Klien | Endpoint `POST /api/v1/registrasi` dan `PenggunaResource` | Satu-satunya pintu tulis pada Sesi 1 |
+| D2, D5, Semua | `App\Services\PengelolaPeran` (`beri`, `cabut`, `daftar`) | Satu-satunya pintu perubahan peran pengguna yang sekaligus menghapus cache izin dan mencabut seluruh sesi akun sasaran (Sesi 3) |
+| Semua | *State factory* peran pada `PenggunaFactory` (`pembeli()`, `penjual()`, `admin()`, `keuangan()`, `auditor()`, `denganPeran()`) | Memudahkan pembuatan akun berperan pada pengujian otomatis lintas domain (Sesi 3) |

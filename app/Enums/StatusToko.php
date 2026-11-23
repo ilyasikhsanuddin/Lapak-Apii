@@ -9,4 +9,5 @@ enum StatusToko: string
     case Menunggu = 'menunggu';
     case Aktif = 'aktif';
     case Ditangguhkan = 'ditangguhkan';
+    case Ditolak = 'ditolak';
 }
