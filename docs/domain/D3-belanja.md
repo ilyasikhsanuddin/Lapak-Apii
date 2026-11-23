@@ -34,6 +34,7 @@ Domain D3 juga menggunakan kontrak bersama `Uang` untuk merepresentasikan nilai 
 |---|---|
 | D2 - Toko dan Katalog | Kontrak `Uang` untuk menangani nilai uang dalam rupiah. |
 | D4 - Pembayaran dan Saldo | Kontrak `Uang` untuk kebutuhan perhitungan nilai uang. |
+| D4 dan D5 | `App\Domain\Pesanan\AturanTransisi`, `StatusPesanan`, dan `PelakuPesanan` sebagai kontrak PHP murni daur hidup status pesanan (LP-10), untuk alur checkout dan pelepasan dana pada sesi berikutnya. |
 
 ## 6. Aturan dan Batasan Domain
 1. Nilai uang menggunakan bilangan bulat rupiah.
@@ -56,4 +57,3 @@ Pada Sesi 1, pekerjaan D3 mencakup skema keranjang, model, perhitungan belanja, 
 Endpoint keranjang yang terikat pada pengguna baru dikembangkan pada Sesi 2.
 
 Implementasi D3 harus menjaga agar logika perhitungan belanja berada di `App\Domain\Belanja`, bukan dicampur dengan controller.
-| D4, D5 | `App\Domain\Pesanan\AturanTransisi`, `StatusPesanan`, dan `PelakuPesanan` | Kontrak PHP murni daur hidup status pesanan (`LP-10`) yang siap dipakai pada alur checkout dan pelepasan dana (Sesi 3) |
