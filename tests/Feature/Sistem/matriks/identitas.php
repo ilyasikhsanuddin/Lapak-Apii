@@ -17,4 +17,5 @@ return [
     'DELETE api/v1/admin/pengguna/{id}/peran/{peran}' => ['admin'],
     'POST api/v1/admin/pengguna/{id}/tangguhkan' => ['admin'],
     'POST api/v1/admin/pengguna/{id}/pulihkan' => ['admin'],
+    'GET api/v1/alamat' => ['pembeli'],
 ];
