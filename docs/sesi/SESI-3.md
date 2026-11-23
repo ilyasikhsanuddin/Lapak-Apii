@@ -1,61 +1,55 @@
-﻿# Papan Sesi 3 — Peran, Izin, dan Kewenangan atas Objek
+# Papan Sesi 3 — Peran, Izin, dan Kewenangan atas Objek
 
 ## 1. Tujuan Sesi
 
-Sesi 3 membahas penerapan Role-Based Access Control (RBAC), pengelolaan peran dan izin pengguna, serta pembatasan akses terhadap objek berdasarkan kewenangan pengguna.
+Sesi 3 menerapkan Role-Based Access Control (RBAC), pengelolaan peran dan izin pengguna, serta pembatasan akses terhadap objek berdasarkan kewenangan pengguna.
 
 ## 2. Prinsip Otorisasi
 
-1. Middleware auth:sesi memastikan pengguna sudah login.
-2. Middleware izin memeriksa izin pengguna.
+1. Middleware `auth:sesi` memastikan pengguna sudah memiliki sesi yang sah.
+2. Middleware `izin:` memeriksa izin pengguna.
 3. Pemeriksaan kepemilikan objek dilakukan setelah izin terpenuhi.
+4. Satu pengguna dapat memiliki beberapa peran.
+5. Izin efektif merupakan gabungan izin dari seluruh peran pengguna.
+6. Route menyebutkan izin, bukan nama peran.
+7. Admin tidak otomatis memiliki izin untuk mengakses uang atau buku besar.
 
 Ketentuan respons:
-- Belum login: HTTP 401.
-- Tidak memiliki izin: HTTP 403.
-- Objek tidak ditemukan atau tidak dapat diakses: HTTP 404.
+- Belum login atau sesi tidak sah: HTTP 401.
+- Tidak memiliki izin: HTTP 403 dengan kode `DITOLAK`.
+- Objek tidak ditemukan: HTTP 404.
+- Tindakan sensitif dengan sesi tidak segar: HTTP 403 dengan kode `LP-15`.
 
-Prinsip utama:
-- Satu rute menggunakan satu izin.
-- Rute menyebutkan izin, bukan nama peran.
-- Satu pengguna dapat memiliki beberapa peran.
-- Izin efektif merupakan gabungan izin dari seluruh peran pengguna.
-- Admin tidak otomatis memiliki izin buku besar.
+## 3. Matriks Peran dan Izin Implementasi
 
-## 3. Rancangan Matriks Peran dan Izin
-
-Matriks awal berdasarkan modul dan menunggu kesepakatan tim.
+Pemetaan izin bawaan ditetapkan melalui `App\Enums\NamaPeran::izinBawaan()` dan disalin ke basis data oleh `PeranIzinSeeder`.
 
 | Peran | Izin |
 |---|---|
-| pembeli | keranjang.kelola, toko.buka |
-| penjual | produk.kelola, dompet.lihat |
-| admin | toko.moderasi, peran.kelola |
-| keuangan | buku-besar.lihat |
-| auditor | buku-besar.lihat |
+| pembeli | `keranjang.kelola`, `toko.buka` |
+| penjual | `produk.kelola`, `dompet.lihat` |
+| admin | `toko.moderasi`, `peran.kelola`, `akun.tangguhkan` |
+| keuangan | `buku-besar.lihat` |
+| auditor | `buku-besar.lihat` |
+
+Admin sengaja tidak memiliki izin `dompet.lihat` maupun `buku-besar.lihat`. Keuangan dan auditor dapat membaca buku besar, tetapi tidak memperoleh kewenangan tulis dari izin tersebut.
 
 ## 4. Rancangan Endpoint API
 
-| Endpoint | Metode | Izin |
-|---|---|---|
-| /saya | GET | Tanpa izin khusus |
-| /admin/pengguna | GET | peran.kelola |
-| /admin/pengguna/{id}/peran/{peran} | PUT, DELETE | peran.kelola |
-| /toko-saya | GET, PATCH | Tanpa izin khusus |
-| /toko-saya | POST | toko.buka |
-| /toko-saya/produk | GET, POST | produk.kelola |
-| /toko-saya/produk/{produk} | PATCH, DELETE | produk.kelola |
-| /admin/toko | GET | toko.moderasi |
-| /admin/toko/{id}/setujui | POST | toko.moderasi |
-| /admin/toko/{id}/tangguhkan | POST | toko.moderasi |
-| /keranjang | GET, DELETE | keranjang.kelola |
-| /keranjang/butir/{produkId} | PUT, DELETE | keranjang.kelola |
-| /dompet | GET | dompet.lihat |
-| /dompet/mutasi | GET | dompet.lihat |
-| /buku-besar/dompet | GET | buku-besar.lihat |
-| /buku-besar/dompet/{id}/mutasi | GET | buku-besar.lihat |
+Endpoint berikut menggambarkan kelompok akses berdasarkan implementasi route API v1.
 
-Catatan: Daftar endpoint dan izin perlu disesuaikan dengan kesepakatan tim dan implementasi akhir.
+| Kelompok endpoint | Metode / fungsi | Izin |
+|---|---|---|
+| `/api/v1/keranjang` | Mengelola keranjang | `keranjang.kelola` |
+| `/api/v1/toko-saya` | Mengajukan pembukaan toko | `toko.buka` |
+| `/api/v1/toko-saya/produk` | Mengelola produk toko | `produk.kelola` |
+| `/api/v1/dompet` | Melihat dompet sendiri | `dompet.lihat` |
+| `/api/v1/buku-besar` | Membaca buku besar | `buku-besar.lihat` |
+| `/api/v1/admin/pengguna` | Mengelola peran pengguna | `peran.kelola` |
+| `/api/v1/admin/pengguna` | Menangguhkan dan memulihkan akun | `akun.tangguhkan` |
+| `/api/v1/admin/toko` | Memoderasi toko | `toko.moderasi` |
+
+Rute terlindung menggunakan middleware `auth:sesi`. Rute yang memerlukan izin menggunakan middleware `izin:` setelah autentikasi sesi.
 
 ## 5. Pembagian Tugas Sesi 3
 
@@ -69,7 +63,7 @@ Catatan: Daftar endpoint dan izin perlu disesuaikan dengan kesepakatan tim dan i
 | B3 | Bagas | Moderasi toko |
 | B4 | Rani | Gerbang akses keranjang |
 | B5 | Dimas | Buku besar |
-| Penutup | Rani | Pengujian dan dokumentasi akhir |
+| Penutup | Rani | Pengujian integrasi dan dokumentasi akhir |
 
 ## 6. Urutan Pull Request
 
@@ -81,24 +75,35 @@ Catatan: Daftar endpoint dan izin perlu disesuaikan dengan kesepakatan tim dan i
 6. PR B3 — Bagas.
 7. PR B4 — Rani.
 8. PR B5 — Dimas.
-9. PR penutup — Rani.
+9. PR Penutup — Rani.
 
-Pengerjaan tahap B dimulai setelah A1 dan A2 digabungkan ke main.
+Pengerjaan tahap B dimulai setelah A1 dan A2 digabungkan ke `main`.
 
 ## 7. Pengujian Integrasi
 
-- composer install
-- php artisan migrate:fresh --seed
-- ./vendor/bin/pint --test
-- ./vendor/bin/pest
-- php artisan lapak:periksa-buku
-- php artisan lapak:matriks-izin
-- php artisan route:list --path=api/v1
+Pengujian integrasi dilakukan dengan perintah:
 
-## 8. Catatan Integrasi
+- `composer install`
+- `php artisan migrate:fresh --seed`
+- `./vendor/bin/pint --test`
+- `./vendor/bin/pest`
+- `php artisan lapak:periksa-buku`
+- `php artisan lapak:matriks-izin`
+- `php artisan route:list --path=api/v1`
+
+Pengujian `IzinTerpakaiTest` memastikan:
+1. Setiap izin yang didefinisikan pada `NamaIzin` digunakan oleh minimal satu route.
+2. Tidak ada route yang menggunakan izin yang tidak dikenal.
+3. Setiap route dengan middleware `izin:` juga menggunakan `auth:sesi`.
+
+## 8. Catatan Integrasi dan Penutup
 
 - Setiap anggota bekerja melalui branch masing-masing.
-- Pull request harus diperiksa reviewer.
-- Perubahan main dilakukan melalui review dan merge.
-- Pengujian dilakukan kembali setelah integrasi.
-- Dokumen diperbarui mengikuti kesepakatan dan hasil implementasi tim.
+- Pull request diperiksa oleh reviewer sebelum digabungkan.
+- Perubahan pada `main` dilakukan melalui review dan merge.
+- Pengujian dijalankan kembali setelah integrasi.
+- Dokumentasi diperbarui mengikuti implementasi akhir.
+
+Hasil pengujian `IzinTerpakaiTest` pada branch Penutup: 3 pengujian berhasil.
+
+Catatan LP-10: aturan perpindahan status pesanan telah tersedia pada `AturanTransisi` dan daftar status pada `StatusPesanan`. Konfigurasi batas pembayaran 24 jam tersedia pada `config/lapak.php`. Namun, proses otomatis pembatalan pesanan kedaluwarsa dan pengembalian stok belum ditemukan dalam implementasi yang diperiksa.
