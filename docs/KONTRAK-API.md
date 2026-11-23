@@ -65,6 +65,7 @@ ditulis. `PeranIzinSeeder` menyalinnya ke basis data. Tidak ada peran yang memeg
 | GET | `/api/v1/kategori` | Daftar kategori | Publik |
 | GET | `/api/v1/produk` | Daftar produk | Publik |
 | GET | `/api/v1/toko/{slug}` | Detail toko | Publik |
+
 ## Idempotensi
 
 - Setiap permintaan yang mengubah uang atau stok wajib membawa header `Idempotency-Key` (LP-11):
