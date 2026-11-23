@@ -26,6 +26,9 @@ final class PenjagaStok
             throw new LogicException('PenjagaStok::ambil() harus di dalam DB::transaction().');
         }
 
+        $idProduk = array_values(array_unique($idProduk));
+        sort($idProduk);
+
         return Produk::query()
             ->with('toko')
             ->whereIn('id', $idProduk)
