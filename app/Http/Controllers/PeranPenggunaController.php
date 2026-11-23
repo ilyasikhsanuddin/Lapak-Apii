@@ -31,6 +31,13 @@ final class PeranPenggunaController extends Controller
             ->when($request->validated('peran'), fn (Builder $kueri, string $peran) => $kueri->whereHas(
                 'peran', fn (Builder $q) => $q->where('peran.nama', $peran),
             ))
+            ->when($request->validated('cari'), fn (Builder $kueri, string $kata) => $kueri->where(function (Builder $q) use ($kata): void {
+                // Tanda % dan _ dari pengguna dijadikan teks biasa; tanpa ini "cari=%" cocok dengan semuanya.
+                $pola = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $kata).'%';
+
+                $q->whereRaw("pengguna.nama like ? escape '!'", [$pola])
+                    ->orWhereRaw("pengguna.surel like ? escape '!'", [$pola]);
+            }))
             ->orderBy('id')
             ->paginate(config('lapak.katalog.per_halaman_bawaan'), ['*'], 'halaman');
 
