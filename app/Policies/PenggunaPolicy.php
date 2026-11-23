@@ -21,4 +21,13 @@ final class PenggunaPolicy
     {
         return ! $pelaku->is($sasaran);
     }
+
+    /**
+     * Tidak seorang pun menangguhkan atau memulihkan akunnya sendiri. Admin yang menangguhkan
+     * dirinya terkunci di luar pintu yang baru saja ia tutup.
+     */
+    public function ubahStatus(Pengguna $pelaku, Pengguna $sasaran): bool
+    {
+        return ! $pelaku->is($sasaran);
+    }
 }

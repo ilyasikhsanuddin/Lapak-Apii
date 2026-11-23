@@ -21,6 +21,7 @@ final class DaftarPenggunaRequest extends FormRequest
         return [
             'peran' => ['sometimes', Rule::enum(NamaPeran::class)],
             'halaman' => ['sometimes', 'integer', 'min:1'],
+            'cari' => ['sometimes', 'string', 'min:2', 'max:60'],
         ];
     }
 }

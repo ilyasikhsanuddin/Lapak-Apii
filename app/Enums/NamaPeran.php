@@ -17,7 +17,7 @@ enum NamaPeran: string
         return match ($this) {
             self::Pembeli => 'Berbelanja dan mengajukan pembukaan toko',
             self::Penjual => 'Mengelola produk dan melihat dompet tokonya',
-            self::Admin => 'Memoderasi toko dan mengelola peran pengguna',
+            self::Admin => 'Memoderasi toko, mengelola peran, dan menangguhkan akun pengguna',
             self::Keuangan => 'Membaca buku besar; menyetujui pencairan mulai Sesi 5',
             self::Auditor => 'Membaca buku besar tanpa hak tulis apa pun',
         };
@@ -36,7 +36,7 @@ enum NamaPeran: string
         return match ($this) {
             self::Pembeli => [NamaIzin::KeranjangKelola, NamaIzin::TokoBuka],
             self::Penjual => [NamaIzin::ProdukKelola, NamaIzin::DompetLihat],
-            self::Admin => [NamaIzin::TokoModerasi, NamaIzin::PeranKelola],
+            self::Admin => [NamaIzin::TokoModerasi, NamaIzin::PeranKelola, NamaIzin::AkunTangguhkan],
             self::Keuangan => [NamaIzin::BukuBesarLihat],
             self::Auditor => [NamaIzin::BukuBesarLihat],
         };
