@@ -111,3 +111,21 @@ it('menolak dan meloloskan setiap peran persis seperti matriks', function () {
 
     expect($selisih)->toBeEmpty("Tidak sesuai matriks:\n".implode("\n", $selisih));
 });
+
+it('tidak membiarkan pintu admin dan buku besar bertanda bintang', function () {
+    $bintang = [];
+
+    foreach (matriksOtorisasi() as $rute => $boleh) {
+        [, $alamat] = explode(' ', $rute);
+
+        $pintuSensitif = preg_match('#^api/v1/(admin|buku-besar)(/|$)#', $alamat) === 1;
+
+        if ($pintuSensitif && $boleh === '*') {
+            $bintang[] = $rute;
+        }
+    }
+
+    expect($bintang)->toBeEmpty(
+        "Pintu admin/buku besar tidak boleh '*':\n".implode("\n", $bintang)
+    );
+});
