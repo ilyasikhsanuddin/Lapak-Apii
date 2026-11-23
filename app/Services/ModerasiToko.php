@@ -12,9 +12,11 @@ use App\Models\Toko;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Keputusan admin atas toko (LP-3).
+ * Keputusan admin dan alur moderasi toko (LP-3).
  *
  * menunggu --setujui--> aktif --tangguhkan--> ditangguhkan --setujui--> aktif
+ * menunggu --tolak----> ditolak --ajukanUlang--> menunggu
+ *
  * Peran penjual lahir di sini dan hanya di sini: saat sebuah toko disetujui.
  */
 final class ModerasiToko
@@ -34,6 +36,37 @@ final class ModerasiToko
 
             return $toko->refresh();
         });
+    }
+
+    /**
+     * Menolak pengajuan toko yang masih menunggu dengan alasan wajib.
+     * Pemilik tetap pembeli (peran penjual tidak diberikan) dan dapat mengajukan ulang.
+     */
+    public function tolak(Toko $toko, Pengguna $admin, string $alasan): Toko
+    {
+        $this->pindahkan($toko, [StatusToko::Menunggu], StatusToko::Ditolak, $admin, $alasan);
+
+        return $toko->refresh();
+    }
+
+    /**
+     * Mengembalikan toko yang ditolak ke antrean menunggu setelah pemilik membenahi datanya.
+     */
+    public function ajukanUlang(Toko $toko): Toko
+    {
+        $berubah = Toko::query()
+            ->whereKey($toko->id)
+            ->where('status', StatusToko::Ditolak)
+            ->update([
+                'status' => StatusToko::Menunggu,
+                'catatan_moderasi' => null,
+            ]);
+
+        if ($berubah === 0) {
+            throw new TransisiTokoTidakSah(StatusToko::Menunggu);
+        }
+
+        return $toko->refresh();
     }
 
     /**

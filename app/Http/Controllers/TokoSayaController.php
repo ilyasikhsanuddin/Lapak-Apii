@@ -9,6 +9,7 @@ use App\Exceptions\SudahPunyaToko;
 use App\Http\Requests\TokoSayaRequest;
 use App\Http\Resources\TokoSayaResource;
 use App\Models\Toko;
+use App\Services\ModerasiToko;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -48,7 +49,7 @@ final class TokoSayaController extends Controller
         return $this->sukses(TokoSayaResource::make($toko), 201);
     }
 
-    public function update(TokoSayaRequest $request): JsonResponse
+    public function update(TokoSayaRequest $request, ModerasiToko $moderasi): JsonResponse
     {
         $toko = Toko::query()->milik($request->user())->firstOrFail();
 
@@ -59,6 +60,11 @@ final class TokoSayaController extends Controller
 
         $toko->fill($data);
         $toko->save();
+
+        // Pemilik toko yang pengajuannya ditolak dapat mengajukan ulang setelah membenahi data.
+        if ($toko->status === StatusToko::Ditolak) {
+            $toko = $moderasi->ajukanUlang($toko);
+        }
 
         return $this->sukses(TokoSayaResource::make($toko));
     }

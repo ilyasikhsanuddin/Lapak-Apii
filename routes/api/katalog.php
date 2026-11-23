@@ -19,7 +19,7 @@ Route::middleware('auth:sesi')
     ->name('toko-saya.')
     ->group(function (): void {
         // Melihat dan membenahi toko sendiri tidak menuntut izin khusus: pemilik toko yang masih
-        // menunggu persetujuan belum menjadi penjual, tetapi harus dapat memperbaiki datanya.
+        // menunggu atau ditolak belum menjadi penjual, tetapi harus dapat memperbaiki datanya.
         Route::get('/', [TokoSayaController::class, 'show'])->name('show');
         Route::patch('/', [TokoSayaController::class, 'update'])->name('update');
 
@@ -45,9 +45,10 @@ Route::middleware(['auth:sesi', 'izin:toko.moderasi'])
     ->group(function (): void {
         Route::get('/', [ModerasiTokoController::class, 'index'])->name('index');
 
-        // Menyetujui toko berarti memberi peran penjual: tindakan sensitif (LP-15).
+        // Keputusan moderasi toko adalah tindakan sensitif (LP-15).
         Route::middleware('sesi.segar')->group(function (): void {
             Route::post('{id}/setujui', [ModerasiTokoController::class, 'setujui'])->name('setujui');
+            Route::post('{id}/tolak', [ModerasiTokoController::class, 'tolak'])->name('tolak');
             Route::post('{id}/tangguhkan', [ModerasiTokoController::class, 'tangguhkan'])
                 ->name('tangguhkan');
         });
