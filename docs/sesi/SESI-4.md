@@ -42,3 +42,31 @@
 1. **Pengembalian Dana:** Pembayaran yang tiba setelah tagihan kedaluwarsa saat ini ditolak 409. Sesi 5 harus membukukan dana masuk lalu mengembalikannya (refund).
 2. **Urutan Kunci:** Pastikan urutan kunci (lock order) di `docs/PETA-SKEMA.md` dipatuhi di semua transaksi, terutama saat pelepasan dana dan pencairan saldo.
 3. **Tag sesi-4:** Pastikan tag `sesi-4` dipasang setelah PR Penutup ini di-merge.
+
+== Commit per anggota (sesi-3..sesi-4, tanpa merge commit)
+    11  Ahmad Shobah Rahmadani
+     6  Ilyas Ikhsanuddin Putra Madani
+     5  Hilma Aulia
+     4  Fauzy Akhbar
+     4  Vicky Rinoval Ikhsan
+
+== Baris ditambah dan dihapus per anggota
+Ahmad Shobah Rahmadani +1269 -11
+Fauzy Akhbar +1132 -8
+Hilma Aulia  +560 -35
+Ilyas Ikhsanuddin Putra Madani +668 -2
+Vicky Rinoval Ikhsan +1544 -15
+
+== PR yang masuk ke main
+  Merge pull request #70 from ilyasikhsanuddin/sesi-4/penutup-fauzy
+  Merge pull request #67 from ilyasikhsanuddin/sesi-4/balapanci-dani
+  Merge pull request #68 from ilyasikhsanuddin/sesi-4/webhook-dimas
+  Merge pull request #64 from ilyasikhsanuddin/sesi-4/kunci-stok-hilma
+  Merge pull request #69 from ilyasikhsanuddin/sesi-4/checkout-vicky
+  Merge pull request #66 from ilyasikhsanuddin/sesi-4/alamat-ilyas
+  Merge pull request #63 from ilyasikhsanuddin/sesi-4/kontrak-pembayaran-dimas
+  Merge pull request #59 from ilyasikhsanuddin/sesi-4/kontrak-pesanan-vicky
+  Merge pull request #60 from ilyasikhsanuddin/sesi-4/kontrak-stok-hilma
+  Merge pull request #61 from ilyasikhsanuddin/sesi-4/kontrak-alamat-Ilyas
+  Merge pull request #62 from ilyasikhsanuddin/sesi-4/kontrak-idempoten-dani
+  Merge pull request #58 from ilyasikhsanuddin/sesi-4/pembuka-dimas
