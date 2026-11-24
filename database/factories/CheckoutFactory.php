@@ -18,7 +18,7 @@ class CheckoutFactory extends Factory
     {
         return [
             'kode' => (string) Str::ulid(),
-            'pembeli_id' => Pengguna::factory(),
+            'pembeli_id' => Pengguna::factory()->pembeli(),
             'total_rupiah' => 197_000,
             'pengenal_sesi' => (string) Str::ulid(),
         ];
