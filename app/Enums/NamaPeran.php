@@ -19,7 +19,7 @@ enum NamaPeran: string
             self::Penjual => 'Mengelola produk dan melihat dompet tokonya',
             self::Admin => 'Memoderasi toko, mengelola peran, dan menangguhkan akun pengguna',
             self::Keuangan => 'Membaca buku besar; menyetujui pencairan mulai Sesi 5',
-            self::Auditor => 'Membaca buku besar tanpa hak tulis apa pun',
+            self::Auditor => 'Membaca buku besar dan log audit tanpa hak tulis apa pun',
         };
     }
 
@@ -33,12 +33,29 @@ enum NamaPeran: string
      */
     public function izinBawaan(): array
     {
+        // Satu izin per baris, sengaja: dua PR yang menambah izin pada peran berbeda, atau pada
+        // tempat berbeda di peran yang sama, tidak menyentuh baris yang sama.
         return match ($this) {
-            self::Pembeli => [NamaIzin::KeranjangKelola, NamaIzin::TokoBuka, NamaIzin::PesananBuat],
-            self::Penjual => [NamaIzin::ProdukKelola, NamaIzin::DompetLihat],
-            self::Admin => [NamaIzin::TokoModerasi, NamaIzin::PeranKelola, NamaIzin::AkunTangguhkan],
-            self::Keuangan => [NamaIzin::BukuBesarLihat],
-            self::Auditor => [NamaIzin::BukuBesarLihat],
+            self::Pembeli => [
+                NamaIzin::KeranjangKelola,
+                NamaIzin::TokoBuka,
+                NamaIzin::PesananBuat,
+            ],
+            self::Penjual => [
+                NamaIzin::ProdukKelola,
+                NamaIzin::DompetLihat,
+            ],
+            self::Admin => [
+                NamaIzin::TokoModerasi,
+                NamaIzin::PeranKelola,
+                NamaIzin::AkunTangguhkan,
+            ],
+            self::Keuangan => [
+                NamaIzin::BukuBesarLihat,
+            ],
+            self::Auditor => [
+                NamaIzin::BukuBesarLihat,
+            ],
         };
     }
 }
