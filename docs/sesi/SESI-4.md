@@ -25,3 +25,20 @@
 ## Catatan Khusus Sesi 4
 - **Wajib MySQL:** SQLite tidak bisa menguji `lockForUpdate()`. Semua uji balapan harus dijalankan di MySQL.
 - **Urutan Kunci (Lock Order):** Tim harus menyepakati urutan kunci (lihat `docs/PETA-SKEMA.md`) untuk mencegah *deadlock*.
+
+---
+
+## Catatan Penutup Sesi 4
+
+**Status:** Selesai
+**Integrator:** Dimas (Fauzy Akhbar)
+
+### Kendala dan Pelajaran
+1. **Uji Balapan (Race Condition):** Sesi ini menuntut penggunaan MySQL untuk menguji `lockForUpdate()`. SQLite tidak bisa digunakan untuk menguji ini.
+2. **Idempotency-Key:** Middleware Idempoten dan `KunciIdempotensi` harus berada dalam satu transaksi dengan efeknya untuk mencegah efek ganda.
+3. **Webhook:** Validasi HMAC-SHA256 sangat ketat. Pastikan `X-Gateway-Signature` dihitung dari raw body, bukan dari JSON yang sudah di-parse.
+
+### Titipan untuk Sesi 5 (Sekar)
+1. **Pengembalian Dana:** Pembayaran yang tiba setelah tagihan kedaluwarsa saat ini ditolak 409. Sesi 5 harus membukukan dana masuk lalu mengembalikannya (refund).
+2. **Urutan Kunci:** Pastikan urutan kunci (lock order) di `docs/PETA-SKEMA.md` dipatuhi di semua transaksi, terutama saat pelepasan dana dan pencairan saldo.
+3. **Tag sesi-4:** Pastikan tag `sesi-4` dipasang setelah PR Penutup ini di-merge.
