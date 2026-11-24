@@ -64,8 +64,8 @@ final class BatalSaatCheckout implements SkenarioBalapan
             $pesanan = Pesanan::factory()->for($induk)->for($toko)->create();
 
             // Nomor produk besar disimpan lebih dulu.
-            ButirPesanan::factory()->for($pesanan)->create(['produk_id' => $besar->id]);
-            ButirPesanan::factory()->for($pesanan)->create(['produk_id' => $kecil->id]);
+            ButirPesanan::factory()->for($pesanan)->create(['produk_id' => $besar->id, 'kuantitas' => 1]);
+            ButirPesanan::factory()->for($pesanan)->create(['produk_id' => $kecil->id, 'kuantitas' => 1]);
 
             Pembayaran::factory()->for($induk)->create(['batas_bayar_pada' => now()->subMinute()]);
 
@@ -77,11 +77,10 @@ final class BatalSaatCheckout implements SkenarioBalapan
 
     public function jalankan(array $konteks, int $nomor): string
     {
-        // Nomor genap: penjadwal membatalkan satu checkout. Nomor ganjil: pembeli.
+        // Nomor genap: penjadwal menjalankan pembatalan otomatis (bisa membatalkan banyak checkout). Nomor ganjil: pembeli.
         if ($nomor % 2 === 0) {
-            $id = $konteks['checkout'][intdiv($nomor, 2) - 1];
-
-            return $this->pembatalan->batalkan($id) ? 'penjadwal: batal' : 'penjadwal: lewati';
+            // jalankan() membatalkan semua checkout kedaluwarsa yang ia dapat dan mengembalikan jumlahnya.
+            return 'penjadwal: batal '.$this->pembatalan->jalankan();
         }
 
         try {
@@ -99,13 +98,19 @@ final class BatalSaatCheckout implements SkenarioBalapan
 
     public function periksa(array $konteks, array $hasil): array
     {
-        $batal = count(array_filter($hasil, fn (string $h) => $h === 'penjadwal: batal'));
+        $awalan = 'penjadwal: batal ';
+
+        $prosesPenjadwal = count(array_filter($hasil, fn (string $h) => str_starts_with($h, $awalan)));
+        $batal = array_sum(array_map(
+            fn (string $h) => str_starts_with($h, $awalan) ? (int) substr($h, strlen($awalan)) : 0,
+            $hasil,
+        ));
         $beli = count(array_filter($hasil, fn (string $h) => $h === 'pembeli: beli 2'));
         $seharusnya = self::STOK_AWAL + $batal - $beli;
 
         $pelanggaran = [];
 
-        if ($batal + $beli !== count($hasil)) {
+        if ($prosesPenjadwal + $beli !== count($hasil)) {
             $pelanggaran[] = 'Ada proses yang gagal, misalnya karena kebuntuan (deadlock).';
         }
 
