@@ -11,6 +11,7 @@ use App\Models\Pembayaran;
 use App\Models\Pesanan;
 use App\Models\Produk;
 use App\Services\PembatalanOtomatis;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     $this->layanan = app(PembatalanOtomatis::class);
@@ -139,4 +140,44 @@ it('membatalkan seluruh perubahan jika salah satu pesanan tidak dapat dibatalkan
         ->and($produk->refresh()->stok)->toBe(3)
         ->and(Pembayaran::query()->where('checkout_id', $checkout->id)->firstOrFail()->status)
         ->toBe(StatusPembayaran::Menunggu);
+});
+
+it('mengembalikan stok urut nomor produk, apa pun urutan butirnya', function () {
+    $checkout = Checkout::factory()->create();
+    $pesanan = Pesanan::factory()->for($checkout)->create();
+
+    $kecil = Produk::factory()->create(['stok' => 0]);
+    $tengah = Produk::factory()->create(['stok' => 0]);
+    $besar = Produk::factory()->create(['stok' => 0]);
+
+    foreach ([$besar, $kecil, $tengah] as $produk) {
+        ButirPesanan::factory()->for($pesanan)->create([
+            'produk_id' => $produk->id,
+            'kuantitas' => 1,
+        ]);
+    }
+
+    Pembayaran::factory()->for($checkout)->create([
+        'batas_bayar_pada' => now()->subSecond(),
+    ]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    expect($this->layanan->jalankan())->toBe(1);
+
+    $idProdukDiperbarui = collect(DB::getQueryLog())
+        ->filter(fn (array $query) => preg_match(
+            '/^update\s+["`]?produk["`]?/i',
+            ltrim($query['query'])
+        ))
+        ->map(fn (array $query) => (int) $query['bindings'][array_key_last($query['bindings'])])
+        ->values()
+        ->all();
+
+    expect($idProdukDiperbarui)->toBe([
+        $kecil->id,
+        $tengah->id,
+        $besar->id,
+    ]);
 });
