@@ -30,7 +30,8 @@ const POST_TANPA_KUNCI = [
     'POST api/v1/admin/pengguna/{id}/tangguhkan' => 'UPDATE bersyarat: pengulangan dijawab 409.',
     'POST api/v1/admin/pengguna/{id}/pulihkan' => 'UPDATE bersyarat: pengulangan dijawab 409.',
     'POST api/v1/alamat' => 'Tidak menyentuh uang maupun stok; jumlah alamat dibatasi.',
-    'POST api/v1/webhook/pembayaran' => 'Dijaga status tagihan di bawah gembok checkout.',
+    // Aktifkan kembali saat rute webhook pembayaran lahir (Sesi 5):
+    // 'POST api/v1/webhook/pembayaran' => 'Dijaga status tagihan di bawah gembok checkout.',
 ];
 
 /** @return array<string, list<string>> "POST alamat" => middleware rute itu */
