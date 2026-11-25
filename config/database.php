@@ -1,101 +1,184 @@
 <?php
 
-declare(strict_types=1);
+use Illuminate\Support\Str;
+use Pdo\Mysql;
 
-use App\Domain\Pesanan\PelakuPesanan;
-use App\Domain\Pesanan\StatusPesanan;
-use App\Domain\Uang;
-use App\Enums\JenisDompet;
-use App\Enums\JenisMutasi;
-use App\Enums\PeristiwaAudit;
-use App\Models\LogAudit;
-use App\Models\MutasiSaldo;
-use App\Services\BukuBesar;
-use App\Services\LayananPesanan;
-use App\Services\PenyelesaianOtomatis;
-use Tests\Pendukung\PesananUji;
+return [
 
-beforeEach(function () {
-    $this->buku = app(BukuBesar::class);
-    $this->layanan = app(LayananPesanan::class);
-    $this->otomatis = app(PenyelesaianOtomatis::class);
+    /*
+    |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify which of the database connections below you wish
+    | to use as your default connection for database operations. This is
+    | the connection which will be utilized unless another connection
+    | is explicitly specified when you execute a query / statement.
+    |
+    */
 
-    $this->siapkanPesananTerkirim = function (int $umurHari = 4): array {
-        $data = PesananUji::dibayar();
-        $pesanan = $data['pesanan'];
+    'default' => env('DB_CONNECTION', 'sqlite'),
 
-        $this->layanan->kemas($pesanan);
-        $this->layanan->kirim($pesanan, 'JNE-UJI-123456');
+    /*
+    |--------------------------------------------------------------------------
+    | Database Connections
+    |--------------------------------------------------------------------------
+    |
+    | Below are all of the database connections defined for your application.
+    | An example configuration is provided for each database system which
+    | is supported by Laravel. You're free to add / remove connections.
+    |
+    */
 
-        $pesanan->forceFill([
-            'dikirim_pada' => now()->subDays($umurHari),
-        ])->save();
+    'connections' => [
 
-        $eksternal = $this->buku->dompetSistem(JenisDompet::Eksternal);
-        $escrow = $this->buku->dompetSistem(JenisDompet::Escrow);
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],
 
-        $this->buku->pindahkan(
-            $eksternal,
-            $escrow,
-            Uang::dari($pesanan->total_rupiah),
-            JenisMutasi::DanaMasuk,
-            $pesanan->nomor,
-            'Pembayaran uji',
-        );
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
 
-        $data['escrow'] = $escrow;
-        $data['pendapatan'] = $this->buku->dompetSistem(JenisDompet::Pendapatan);
-        $data['penjual'] = $this->buku->dompetPenjual($pesanan->toko->pemilik);
+        'mariadb' => [
+            'driver' => 'mariadb',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
 
-        return $data;
-    };
-});
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
 
-it('menyelesaikan pesanan yang sudah melewati masa penahanan dana', function () {
-    $data = ($this->siapkanPesananTerkirim)(4);
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
+            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        ],
 
-    expect($this->otomatis->jalankan())->toBe(1)
-        ->and($data['pesanan']->refresh()->status)->toBe(StatusPesanan::Selesai)
-        ->and($data['escrow']->refresh()->saldo_rupiah)->toBe(0)
-        ->and($data['pendapatan']->refresh()->saldo_rupiah)->toBe(18_500)
-        ->and($data['penjual']->refresh()->saldo_rupiah)->toBe(363_500)
-        ->and(LogAudit::query()->where('peristiwa', PeristiwaAudit::DanaDilepas->value)->count())->toBe(1);
-});
+    ],
 
-it('melewati pesanan yang belum melewati masa penahanan dana', function () {
-    $data = ($this->siapkanPesananTerkirim)(1);
+    /*
+    |--------------------------------------------------------------------------
+    | Migration Repository Table
+    |--------------------------------------------------------------------------
+    |
+    | This table keeps track of all the migrations that have already run for
+    | your application. Using this information, we can determine which of
+    | the migrations on disk haven't actually been run on the database.
+    |
+    */
 
-    expect($this->otomatis->jalankan())->toBe(0)
-        ->and($data['pesanan']->refresh()->status)->toBe(StatusPesanan::Dikirim)
-        ->and($data['escrow']->refresh()->saldo_rupiah)->toBe(382_000)
-        ->and($data['pendapatan']->refresh()->saldo_rupiah)->toBe(0)
-        ->and($data['penjual']->refresh()->saldo_rupiah)->toBe(0)
-        ->and(LogAudit::query()->where('peristiwa', PeristiwaAudit::DanaDilepas->value)->count())->toBe(0);
-});
+    'migrations' => [
+        'table' => 'migrations',
+        'update_date_on_publish' => true,
+    ],
 
-it('tidak melepas dana atau mencatat audit dua kali ketika dijalankan berulang', function () {
-    $data = ($this->siapkanPesananTerkirim)(4);
+    /*
+    |--------------------------------------------------------------------------
+    | Redis Databases
+    |--------------------------------------------------------------------------
+    |
+    | Redis is an open source, fast, and advanced key-value store that also
+    | provides a richer body of commands than a typical key-value system
+    | such as Memcached. You may define your connection settings here.
+    |
+    */
 
-    expect($this->otomatis->jalankan())->toBe(1)
-        ->and($this->otomatis->jalankan())->toBe(0)
-        ->and($data['pesanan']->refresh()->status)->toBe(StatusPesanan::Selesai)
-        ->and($data['escrow']->refresh()->saldo_rupiah)->toBe(0)
-        ->and($data['pendapatan']->refresh()->saldo_rupiah)->toBe(18_500)
-        ->and($data['penjual']->refresh()->saldo_rupiah)->toBe(363_500)
-        ->and(MutasiSaldo::query()->where('rujukan', $data['pesanan']->nomor)->count())->toBe(6)
-        ->and(LogAudit::query()->where('peristiwa', PeristiwaAudit::DanaDilepas->value)->count())->toBe(1);
-});
+    'redis' => [
 
-it('melewati kandidat lama jika pembeli lebih dahulu menyelesaikan pesanan', function () {
-    $data = ($this->siapkanPesananTerkirim)(4);
+        'client' => env('REDIS_CLIENT', 'phpredis'),
 
-    $this->layanan->terima($data['pesanan'], PelakuPesanan::Pembeli);
+        'options' => [
+            'cluster' => env('REDIS_CLUSTER', 'redis'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'persistent' => env('REDIS_PERSISTENT', false),
+        ],
 
-    expect($this->otomatis->selesaikan($data['pesanan']))->toBeFalse()
-        ->and($data['pesanan']->refresh()->status)->toBe(StatusPesanan::Selesai)
-        ->and($data['escrow']->refresh()->saldo_rupiah)->toBe(0)
-        ->and($data['pendapatan']->refresh()->saldo_rupiah)->toBe(18_500)
-        ->and($data['penjual']->refresh()->saldo_rupiah)->toBe(363_500)
-        ->and(MutasiSaldo::query()->where('rujukan', $data['pesanan']->nomor)->count())->toBe(6)
-        ->and(LogAudit::query()->where('peristiwa', PeristiwaAudit::DanaDilepas->value)->count())->toBe(1);
-});
+        'default' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+        ],
+
+        'cache' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_CACHE_DB', '1'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+        ],
+
+    ],
+
+];
