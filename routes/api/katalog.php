@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\ModerasiTokoController;
+use App\Http\Controllers\PesananTokoController;
 use App\Http\Controllers\ProdukSayaController;
 use App\Http\Controllers\TokoSayaController;
 use Illuminate\Support\Facades\Route;
@@ -18,8 +19,6 @@ Route::middleware('auth:sesi')
     ->prefix('toko-saya')
     ->name('toko-saya.')
     ->group(function (): void {
-        // Melihat dan membenahi toko sendiri tidak menuntut izin khusus: pemilik toko yang masih
-        // menunggu atau ditolak belum menjadi penjual, tetapi harus dapat memperbaiki datanya.
         Route::get('/', [TokoSayaController::class, 'show'])->name('show');
         Route::patch('/', [TokoSayaController::class, 'update'])->name('update');
 
@@ -36,6 +35,24 @@ Route::middleware('auth:sesi')
             Route::delete('produk/{produk}', [ProdukSayaController::class, 'destroy'])
                 ->name('produk.destroy');
         });
+
+        // Pesanan yang masuk ke toko sendiri. Izin pesanan.proses lahir bersama rute ini.
+        Route::middleware('izin:pesanan.proses')
+            ->prefix('pesanan')
+            ->name('pesanan.')
+            ->group(function (): void {
+                Route::get('/', [PesananTokoController::class, 'index'])->name('index');
+                Route::get('{nomor}', [PesananTokoController::class, 'show'])->name('show');
+
+                // Tanpa Idempotency-Key: keduanya hanya memindahkan status. Pengulangan dijawab 409.
+                Route::post('{nomor}/kemas', [PesananTokoController::class, 'kemas'])->name('kemas');
+                Route::post('{nomor}/kirim', [PesananTokoController::class, 'kirim'])->name('kirim');
+
+                // Dengan Idempotency-Key (LP-11): membatalkan mengembalikan stok dan uang.
+                Route::post('{nomor}/batal', [PesananTokoController::class, 'batal'])
+                    ->middleware('idempoten')
+                    ->name('batal');
+            });
     });
 
 // Pintu admin atas toko.
