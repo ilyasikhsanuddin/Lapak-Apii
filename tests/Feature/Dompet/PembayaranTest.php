@@ -71,3 +71,28 @@ it('menemukan tagihan yang lewat batas lewat scope', function () {
 
     expect(Pembayaran::query()->lewatBatas()->count())->toBe(1);
 });
+
+it('menandai dibatalkan tagihan yang menunggu', function () {
+    $pembayaran = $this->layanan->buat($this->checkout);
+    $tandai = fn () => app(GembokCheckout::class)->dalam(
+        $this->checkout->id,
+        fn (Checkout $terkunci) => $this->layanan->tandaiDibatalkan($terkunci),
+    );
+
+    expect($tandai())->toBeTrue()
+        ->and($pembayaran->refresh()->status)->toBe(StatusPembayaran::Dibatalkan)
+        ->and($tandai())->toBeFalse();
+});
+
+it('tidak menandai dibatalkan tagihan yang sudah lunas', function () {
+    $pembayaran = $this->layanan->buat($this->checkout);
+    $pembayaran->forceFill(['status' => StatusPembayaran::Lunas])->save();
+
+    $tandai = app(GembokCheckout::class)->dalam(
+        $this->checkout->id,
+        fn (Checkout $terkunci) => $this->layanan->tandaiDibatalkan($terkunci),
+    );
+
+    expect($tandai)->toBeFalse()
+        ->and($pembayaran->refresh()->status)->toBe(StatusPembayaran::Lunas);
+});

@@ -94,3 +94,14 @@ ditulis. `PeranIzinSeeder` menyalinnya ke basis data. Tidak ada peran yang memeg
 - Kabar yang sama boleh tiba berkali-kali. Yang pertama dijawab `"hasil": "dilunasi"`, sisanya
   `"hasil": "sudah_diproses"`, dan uangnya dibukukan satu kali.
 
+## Dana dan Pencairan
+
+- Dana pembayaran pembeli ditampung di dompet sistem `escrow` sampai pesanan diselesaikan (LP-12).
+- Ketika pesanan selesai (`LayananPesanan::terima`), dana escrow dilepas:
+  - Komisi dipindahkan ke dompet sistem `pendapatan` sebesar persentase komisi dari subtotal produk (LP-8).
+  - Sisa total pesanan (subtotal dikurangi komisi ditambah ongkir) dipindahkan ke dompet `penjual`.
+- Ketika pesanan yang sudah dibayar dibatalkan, seluruh dana pesanan di escrow dikembalikan ke dompet `eksternal` (pembeli).
+- Tagihan pembayaran dapat dibatalkan oleh pembeli sebelum pembayaran lunas, menandai status pembayaran menjadi `dibatalkan`.
+- Pengajuan pencairan saldo oleh penjual menahan saldo dari dompet penjual ke dompet sistem `pencairan` dengan status `menunggu` (LP-16).
+
+

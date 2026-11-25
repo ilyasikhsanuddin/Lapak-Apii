@@ -10,5 +10,7 @@ enum JenisMutasi: string
     case LepasDana = 'lepas_dana'; // escrow -> penjual
     case Komisi = 'komisi'; // escrow -> pendapatan
     case Pengembalian = 'pengembalian'; // escrow -> eksternal
-    case Pencairan = 'pencairan'; // penjual -> eksternal
+    case TahanPencairan = 'tahan_pencairan'; // penjual -> pencairan
+    case BatalPencairan = 'batal_pencairan'; // pencairan -> penjual
+    case Pencairan = 'pencairan'; // penjual / pencairan -> eksternal
 }
