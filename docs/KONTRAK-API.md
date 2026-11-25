@@ -136,3 +136,19 @@ Pembatalan pesanan yang sudah dibayar mengembalikan dana melalui
 `LayananDana` dan mengembalikan stok produk terkait. Pembatalan checkout
 yang kedaluwarsa dijalankan oleh `PembatalanOtomatis` melalui
 `LayananPesanan`.
+
+## Log audit
+
+- `GET /api/v1/audit` menampilkan daftar baris log audit terbaru lebih dulu (dapat disaring menurut
+  `peristiwa`, `sasaran`, dan `pelaku_id`), dan `GET /api/v1/audit/rantai` menampilkan ujung serta
+  panjang rantai saat ini (`jumlah`, `hash_terakhir`, `jangkar`).
+- Kedua endpoint hanya terbuka bagi pemegang izin `audit.lihat` dengan sesi segar (`LP-15`), dan
+  tidak ada endpoint tulis di bawah `/api/v1/audit` (`LP-17`).
+- Jejak hanya ditulis oleh `App\Services\PencatatAudit::catat()` di dalam transaksi yang sama
+  dengan tindakannya, sebagai langkah terakhir sebelum transaksi selesai, sambil mengunci baris
+  kepala `rantai_audit` (`lockForUpdate()`) agar penulisan serempak tidak bercabang.
+- Rincian yang memuat kunci rahasia (`kata_sandi`, `kunci`, `hash_kunci`, `rahasia`,
+  `tanda_tangan`) atau bilangan pecahan ditolak di pintu, dan baris log tidak dapat diubah atau
+  dihapus lewat model.
+- Keutuhan seluruh rantai diverifikasi dengan `php artisan lapak:verifikasi-audit [--jangkar=...]`,
+  termasuk secara otomatis setiap dini hari lewat penjadwal dan pada jalur CI.

@@ -6,6 +6,7 @@ use App\Models\LogAudit;
 use App\Models\Pengguna;
 use App\Services\PemeriksaRantaiAudit;
 use App\Services\PencatatAudit;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -95,7 +96,7 @@ it('tidak membiarkan dua baris meneruskan baris yang sama', function () {
         'rincian' => '[]', 'id_permintaan' => null,
         'hash_sebelumnya' => $induk, 'hash' => str_repeat('a', 64),
         'dicatat_pada' => now()->startOfSecond()->format('Y-m-d H:i:s'),
-    ]))->toThrow(Illuminate\Database\QueryException::class);
+    ]))->toThrow(QueryException::class);
 
     expect($this->pemeriksa->periksa()->utuh())->toBeTrue();
 });
