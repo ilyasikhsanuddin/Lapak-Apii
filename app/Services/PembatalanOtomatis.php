@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Domain\Pesanan\PelakuPesanan;
-use App\Domain\Pesanan\StatusPesanan;
 use App\Models\Pembayaran;
-use App\Models\Pesanan;
 
 final class PembatalanOtomatis
 {
+    private const ALASAN = 'Tidak dibayar sampai batas waktu';
+
     public function __construct(
-        private readonly GembokCheckout $gembokCheckout,
-        private readonly LayananPembayaran $layananPembayaran,
-        private readonly MesinStatusPesanan $mesinStatusPesanan,
-        private readonly PenjagaStok $penjagaStok,
+        private readonly LayananPesanan $pesanan,
     ) {}
 
     /**
@@ -25,62 +22,27 @@ final class PembatalanOtomatis
      */
     public function jalankan(): int
     {
-        $idCheckout = Pembayaran::query()
-            ->lewatBatas()
-            ->orderBy('checkout_id')
-            ->pluck('checkout_id');
+        $dibatalkan = 0;
 
-        $jumlahDibatalkan = 0;
-
-        foreach ($idCheckout as $id) {
-            $berhasil = $this->gembokCheckout->dalam(
-                (int) $id,
-                function ($checkout): bool {
-                    if (! $this->layananPembayaran->tandaiKedaluwarsa($checkout)) {
-                        return false;
-                    }
-
-                    $pesanan = Pesanan::query()
-                        ->where('checkout_id', $checkout->id)
-                        ->with('butir')
-                        ->orderBy('id')
-                        ->get();
-
-                    $kembali = [];
-
-                    foreach ($pesanan as $satuPesanan) {
-                        $this->mesinStatusPesanan->pindahkan(
-                            $satuPesanan,
-                            StatusPesanan::Dibatalkan,
-                            PelakuPesanan::Sistem,
-                            'Tidak dibayar dalam batas waktu pembayaran.',
-                        );
-
-                        foreach ($satuPesanan->butir as $butir) {
-                            $kembali[$butir->produk_id] = ($kembali[$butir->produk_id] ?? 0)
-                                + $butir->kuantitas;
-                        }
-                    }
-
-                    // Kembalikan stok berdasarkan urutan ID produk menaik.
-                    ksort($kembali);
-
-                    foreach ($kembali as $idProduk => $kuantitas) {
-                        $this->penjagaStok->kembalikan(
-                            $idProduk,
-                            $kuantitas,
-                        );
-                    }
-
-                    return true;
-                },
-            );
-
-            if ($berhasil) {
-                $jumlahDibatalkan++;
-            }
+        foreach (
+            Pembayaran::query()
+                ->lewatBatas()
+                ->orderBy('id')
+                ->pluck('checkout_id') as $id
+        ) {
+            $dibatalkan += $this->batalkan((int) $id) ? 1 : 0;
         }
 
-        return $jumlahDibatalkan;
+        return $dibatalkan;
+    }
+
+    public function batalkan(int $idCheckout): bool
+    {
+        return $this->pesanan->batalkanCheckout(
+            $idCheckout,
+            PelakuPesanan::Sistem,
+            null,
+            self::ALASAN,
+        );
     }
 }

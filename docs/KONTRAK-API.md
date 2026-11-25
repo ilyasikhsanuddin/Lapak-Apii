@@ -105,3 +105,34 @@ ditulis. `PeranIzinSeeder` menyalinnya ke basis data. Tidak ada peran yang memeg
 - Pengajuan pencairan saldo oleh penjual menahan saldo dari dompet penjual ke dompet sistem `pencairan` dengan status `menunggu` (LP-16).
 
 
+
+## Daur Hidup Pesanan
+
+Pesanan memiliki alur status berikut:
+
+1. `menunggu_pembayaran`: pesanan dibuat dan menunggu pembayaran.
+2. `dibayar`: pembayaran telah dikonfirmasi oleh sistem.
+3. `dikemas`: penjual mulai menyiapkan pesanan.
+4. `dikirim`: penjual mengirim pesanan dan mengisi nomor resi.
+5. `selesai`: pembeli atau sistem mengonfirmasi pesanan selesai.
+6. `dibatalkan`: pesanan dibatalkan oleh pihak yang berwenang.
+
+Perubahan status setelah checkout dilakukan melalui `LayananPesanan`.
+Setiap perubahan status mengikuti aturan transisi LP-10 dan dilakukan
+di dalam transaksi yang dilindungi `GembokCheckout`.
+
+Informasi proses yang tersedia pada respons pesanan:
+
+- `dibayar_pada`: waktu pembayaran dikonfirmasi.
+- `dikemas_pada`: waktu pesanan mulai dikemas.
+- `dikirim_pada`: waktu pesanan dikirim.
+- `nomor_resi`: nomor pelacakan pengiriman.
+- `selesai_pada`: waktu pesanan diselesaikan.
+- `dibatalkan_pada`: waktu pesanan dibatalkan.
+- `dibatalkan_oleh`: pihak yang melakukan pembatalan.
+- `alasan_batal`: alasan pembatalan.
+
+Pembatalan pesanan yang sudah dibayar mengembalikan dana melalui
+`LayananDana` dan mengembalikan stok produk terkait. Pembatalan checkout
+yang kedaluwarsa dijalankan oleh `PembatalanOtomatis` melalui
+`LayananPesanan`.
