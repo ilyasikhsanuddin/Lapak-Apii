@@ -13,6 +13,7 @@ use App\Models\Dompet;
 use App\Models\MutasiSaldo;
 use App\Models\Pengguna;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -138,7 +139,11 @@ final class BukuBesar
     {
         $dompet = Dompet::query()->where('kode', $kode)->first();
 
-        if ($dompet === null) {
+        if ($dompet !== null) {
+            return $dompet;
+        }
+
+        try {
             $dompet = new Dompet;
             $dompet->forceFill([
                 'kode' => $kode,
@@ -146,8 +151,13 @@ final class BukuBesar
                 'pengguna_id' => $penggunaId,
                 'saldo_rupiah' => 0,
             ])->save();
-        }
 
-        return $dompet;
+            return $dompet;
+        } catch (UniqueConstraintViolationException) {
+            // Dua pelepasan dana pertama bagi penjual yang sama, pada saat yang sama: keduanya
+            // tidak menemukan dompet lalu sama-sama membuatnya. Indeks unik pada kode menolak
+            // yang kedua, dan yang kedua cukup memakai dompet yang baru saja lahir.
+            return Dompet::query()->where('kode', $kode)->lockForUpdate()->firstOrFail();
+        }
     }
 }

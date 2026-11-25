@@ -14,6 +14,8 @@ enum JenisDompet: string
     case Pendapatan = 'pendapatan';
     /** Saldo milik seorang penjual; satu dompet per penjual. */
     case Penjual = 'penjual';
+    /** Dompet penampung pencairan yang sedang diajukan (menunggu). */
+    case Pencairan = 'pencairan';
 
     public function bolehNegatif(): bool
     {

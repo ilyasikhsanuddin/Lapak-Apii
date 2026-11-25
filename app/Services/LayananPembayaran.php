@@ -74,6 +74,27 @@ final class LayananPembayaran
     }
 
     /**
+     * Dipanggil saat pembeli membatalkan checkout yang belum dibayar, di dalam GembokCheckout.
+     *
+     * @return bool false bila tagihan sudah tidak menunggu, misalnya pembayarannya baru saja masuk
+     */
+    public function tandaiDibatalkan(Checkout $checkout): bool
+    {
+        $pembayaran = Pembayaran::query()
+            ->where('checkout_id', $checkout->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        if ($pembayaran->status !== StatusPembayaran::Menunggu) {
+            return false;
+        }
+
+        $pembayaran->forceFill(['status' => StatusPembayaran::Dibatalkan])->save();
+
+        return true;
+    }
+
+    /**
      * Menerima kabar dari gerbang bahwa sebuah tagihan dibayar. Aman diterima berulang kali:
      * gerbang pembayaran mengirim ulang webhook yang jawabannya tidak sampai kepadanya.
      *
