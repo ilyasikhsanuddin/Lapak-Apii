@@ -36,16 +36,25 @@ final class MesinStatusPesanan
             throw new TransisiPesananTidakSah($dari, $ke);
         }
 
-        $perubahan = ['status' => $ke];
-
-        if ($ke === StatusPesanan::Dibayar) {
-            $perubahan['dibayar_pada'] = now();
-        }
-
-        if ($ke === StatusPesanan::Dibatalkan) {
-            $perubahan['dibatalkan_pada'] = now();
-            $perubahan['alasan_batal'] = $alasanBatal;
-        }
+        $perubahan = ['status' => $ke] + match ($ke) {
+            StatusPesanan::Dibayar => [
+                'dibayar_pada' => now(),
+            ],
+            StatusPesanan::Dikemas => [
+                'dikemas_pada' => now(),
+            ],
+            StatusPesanan::Dikirim => [
+                'dikirim_pada' => now(),
+            ],
+            StatusPesanan::Selesai => [
+                'selesai_pada' => now(),
+            ],
+            StatusPesanan::Dibatalkan => [
+                'dibatalkan_pada' => now(),
+                'dibatalkan_oleh' => $oleh->value,
+                'alasan_batal' => $alasanBatal,
+            ],
+        };
 
         $terkini->forceFill($perubahan)->save();
 

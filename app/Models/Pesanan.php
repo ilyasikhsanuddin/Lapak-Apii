@@ -31,6 +31,9 @@ final class Pesanan extends Model
             'total_rupiah' => 'integer',
             'alamat_kirim' => 'array',
             'dibayar_pada' => 'datetime',
+            'dikemas_pada' => 'datetime',
+            'dikirim_pada' => 'datetime',
+            'selesai_pada' => 'datetime',
             'dibatalkan_pada' => 'datetime',
         ];
     }

@@ -44,7 +44,12 @@ final class PesananResource extends JsonResource
             'alamat_kirim' => $this->alamat_kirim,
             'dibuat_pada' => $this->created_at->toIso8601String(),
             'dibayar_pada' => $this->dibayar_pada?->toIso8601String(),
+            'dikemas_pada' => $this->dikemas_pada?->toIso8601String(),
+            'dikirim_pada' => $this->dikirim_pada?->toIso8601String(),
+            'nomor_resi' => $this->nomor_resi,
+            'selesai_pada' => $this->selesai_pada?->toIso8601String(),
             'dibatalkan_pada' => $this->dibatalkan_pada?->toIso8601String(),
+            'dibatalkan_oleh' => $this->dibatalkan_oleh,
             'alasan_batal' => $this->alasan_batal,
         ];
     }
