@@ -81,4 +81,12 @@ final class Pesanan extends Model
     {
         $kueri->where('pesanan.pembeli_id', $pembeli->id);
     }
+
+    /**
+     * @param  Builder<Pesanan>  $kueri
+     */
+    public function scopeMilikToko(Builder $kueri, Toko $toko): void
+    {
+        $kueri->where('pesanan.toko_id', $toko->id);
+    }
 }

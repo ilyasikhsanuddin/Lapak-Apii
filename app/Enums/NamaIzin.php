@@ -14,6 +14,7 @@ enum NamaIzin: string
     case TokoBuka = 'toko.buka';
     case PesananBuat = 'pesanan.buat';
     case ProdukKelola = 'produk.kelola';
+    case PesananProses = 'pesanan.proses';
     case DompetLihat = 'dompet.lihat';
     case TokoModerasi = 'toko.moderasi';
     case PeranKelola = 'peran.kelola';
@@ -27,6 +28,7 @@ enum NamaIzin: string
             self::TokoBuka => 'Mengajukan pembukaan toko',
             self::PesananBuat => 'Mengelola alamat kirim, checkout, dan melihat pesanan sendiri',
             self::ProdukKelola => 'Menambah, mengubah, dan mengarsipkan produk toko sendiri',
+            self::PesananProses => 'Melihat, mengemas, mengirim, dan membatalkan pesanan toko sendiri',
             self::DompetLihat => 'Melihat saldo dan mutasi dompet sendiri',
             self::TokoModerasi => 'Menyetujui dan menangguhkan toko',
             self::PeranKelola => 'Memberi dan mencabut peran pengguna',

@@ -3,6 +3,7 @@
 use App\Enums\NamaPeran;
 use App\Enums\StatusToko;
 use App\Exceptions\TransisiTokoTidakSah;
+use App\Models\LogAudit;
 use App\Models\Pengguna;
 use App\Models\Produk;
 use App\Models\Toko;
@@ -166,4 +167,27 @@ it('memberi peran penjual kepada pemilik toko aktif pada seeder, tetapi tidak un
 
     expect($sri->punyaPeran(NamaPeran::Penjual))->toBeTrue()
         ->and($tini->punyaPeran(NamaPeran::Penjual))->toBeFalse();
+});
+
+it('mencatat keputusan atas toko pada log audit beserta alasannya (LP-17)', function (): void {
+    $admin = Pengguna::factory()->admin()->create();
+    $pemilik = Pengguna::factory()->pembeli()->create();
+    $toko = Toko::factory()->menunggu()->for($pemilik, 'pemilik')->create();
+    $alasan = 'Menjual barang yang dilarang peraturan';
+
+    $this->sebagai($admin)
+        ->postJson("/api/v1/admin/toko/{$toko->id}/setujui")
+        ->assertOk();
+
+    $this->sebagai($admin)
+        ->postJson("/api/v1/admin/toko/{$toko->id}/tangguhkan", ['alasan' => $alasan])
+        ->assertOk();
+
+    // Hanya jejak milik domain ini yang diperiksa agar independen dari cabang D1.
+    $jejak = LogAudit::query()->where('peristiwa', 'like', 'toko.%')->orderBy('id')->get();
+
+    expect($jejak->pluck('peristiwa')->all())->toBe(['toko.disetujui', 'toko.ditangguhkan'])
+        ->and($jejak->pluck('pelaku_id')->unique()->all())->toBe([$admin->id])
+        ->and($jejak[0]->sasaran)->toBe("toko:{$toko->id}")
+        ->and($jejak[1]->rincian['alasan'])->toBe($alasan);
 });
