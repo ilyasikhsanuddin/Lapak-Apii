@@ -45,7 +45,7 @@ it('membatalkan seluruh pesanan dan mengembalikan stok ketika pembayaran kedaluw
         ->and($pesananB->refresh()->status)->toBe(StatusPesanan::Dibatalkan)
         ->and($produkA->refresh()->stok)->toBe(5)
         ->and($produkB->refresh()->stok)->toBe(9)
-        ->and($pesananA->alasan_batal)->toBe('Tidak dibayar dalam batas waktu pembayaran.')
+        ->and($pesananA->alasan_batal)->toBe('Tidak dibayar sampai batas waktu')
         ->and($pesananA->dibatalkan_pada)->not->toBeNull();
 });
 
