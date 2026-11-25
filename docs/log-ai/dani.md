@@ -15,3 +15,14 @@
 | Perintah `lapak:balapan` dan `lapak:balapan-anak`, trait `PanggilHttp`, skenario `Serempak`. Bagian awal `Balapan.php` ditulis ulang AI mengikuti uraian modul karena zip pendamping tidak tersedia | Claude | Menjalankan `php artisan lapak:balapan serempak`: LULUS, 8 proses serentak; membandingkan dengan salinan lain memakai `fc` (identik, bukan berkas asli modul) |
 | Bagian idempotensi pada `docs/KONTRAK-API.md` | Claude | Dicocokkan dengan perilaku `Idempoten.php` (header, 422 untuk kunci dipakai ulang, tidak ada catatan untuk permintaan gagal); diff diperiksa, satu bagian saja, tanpa duplikat |
 | Pemeriksaan sebelum PR | Saya | Menjalankan sendiri seluruh perintah verifikasi di atas; memeriksa `git status` dan daftar berkas diff agar berkas B5 (`Pangkas*`), `.env`, dan `vendor/` tidak ikut; memastikan cabang sudah memuat `origin/main` terbaru; menyisipkan baris kosong pada kontrak dan memeriksa diff-nya |
+
+
+## Sesi 4: B5 Pangkas idempotensi (Latihan Mandiri 6)
+
+| Bagian | Alat | Cara memverifikasi |
+|---|---|---|
+| Perintah `lapak:pangkas-idempotensi` (opsi `--hari`, `--batch`, penghapusan per batch), migrasi indeks `created_at` pada `kunci_idempotensi`, dan `PangkasIdempotensiTest` (8 kasus) | Claude | Menjalankan sendiri `./vendor/bin/pint --test` (PASS) dan `./vendor/bin/pest` di SQLite (399 lulus) dan MySQL 8.4.3 (399 lulus); memeriksa `git diff origin/main --stat`: hanya 5 berkas |
+| Jadwal harian pukul 03:30 pada `routes/console.php` dan butir masa simpan 7 hari pada `docs/KONTRAK-API.md` | Claude (usulan teks), saya (menyunting berkas) | `php artisan schedule:list` menampilkan job terjadwal; diff kontrak diperiksa, hanya menambah 5 baris dan tidak mengubah baris orang lain |
+| Argumen mengapa checkout tetap aman setelah 7 hari, termasuk catatan bahwa rute `POST /toko-saya/produk/{id}/stok` tidak punya pengaman kedua | Claude | Dicocokkan dengan perilaku checkout (keranjang kosong → 422 `KERANJANG_KOSONG`, tagihan kedaluwarsa dalam 24 jam) |
+| Pemeriksaan balapan setelah perubahan | Saya | Menjalankan `php artisan lapak:balapan --semua` di MySQL: 8 skenario LULUS. Kegagalan pertama (`ModelNotFoundException`) disebabkan `DB_DATABASE=lapak_uji` yang masih terpasang di terminal, bukan kode; diperbaiki lalu dijalankan ulang |
+| Pemeriksaan sebelum PR | Saya | Memeriksa `git status` bersih, `git diff origin/main --stat` (tanpa `.env` dan `vendor/`), dan rebase ke `origin/main` terbaru (sudah mutakhir) |

@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Enums\NamaPeran;
 use App\Models\Pengguna;
 use App\Models\Sesi;
 use App\Services\PenerbitSesi;
@@ -45,6 +46,28 @@ abstract class TestCase extends BaseTestCase
     protected function tanpaKunci(): static
     {
         return $this->withoutHeader('Authorization');
+    }
+
+    /**
+     * Gabungan izin bawaan beberapa peran, urut abjad seperti PemeriksaIzin::daftar().
+     * Uji yang membandingkan daftar izin memakai ini, bukan menulis ulang daftarnya: menambah
+     * izin pada sebuah peran tidak boleh memaksa uji domain lain ikut disunting.
+     *
+     * @return list<string>
+     */
+    protected function izinGabungan(NamaPeran ...$peran): array
+    {
+        $nama = [];
+
+        foreach ($peran as $satu) {
+            foreach ($satu->izinBawaan() as $izin) {
+                $nama[$izin->value] = true;
+            }
+        }
+
+        ksort($nama);
+
+        return array_keys($nama);
     }
 
     /**
