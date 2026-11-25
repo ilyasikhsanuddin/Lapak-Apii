@@ -42,3 +42,27 @@ it('hanya mengubah peran pengguna lewat PengelolaPeran (LP-2)', function () {
 
     expect($pelanggar)->toBeEmpty('Menulis peran di luar PengelolaPeran: '.implode(', ', $pelanggar));
 });
+
+it('hanya menulis log audit lewat PencatatAudit (LP-17)', function () {
+    $pelanggar = [];
+    $berkas = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path()));
+
+    foreach ($berkas as $satu) {
+        if (! $satu->isFile() || $satu->getFilename() === 'PencatatAudit.php') {
+            continue;
+        }
+
+        $isi = file_get_contents($satu->getPathname());
+        $lewatModel = '/new LogAudit\b|LogAudit::(create|insert\w*|upsert|updateOrCreate)\(/';
+        $tulis = '(insert\w*|update|delete|upsert|truncate|increment)';
+        $tabel = 'table\(\'(log_audit|rantai_audit)\'\)';
+        $lewatTabel = '/'.$tabel.'(\s*->\w+\([^)]*\))*\s*->'.$tulis.'\(/';
+
+        if (preg_match($lewatModel, $isi) || preg_match($lewatTabel, $isi)) {
+            $pelanggar[] = $satu->getFilename();
+        }
+    }
+
+    expect($pelanggar)
+        ->toBeEmpty('Menulis log audit di luar PencatatAudit: '.implode(', ', $pelanggar));
+});
