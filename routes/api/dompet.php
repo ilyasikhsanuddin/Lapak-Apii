@@ -3,6 +3,8 @@
 use App\Http\Controllers\BukuBesarController;
 use App\Http\Controllers\DompetController;
 use App\Http\Controllers\PembayaranSayaController;
+use App\Http\Controllers\PencairanSayaController;
+use App\Http\Controllers\PencairanStafController;
 use App\Http\Controllers\WebhookPembayaranController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,3 +38,16 @@ Route::get('pembayaran/{kode}', [PembayaranSayaController::class, 'show'])
 // Satu-satunya rute tulis tanpa kunci sesi. Pemanggilnya gerbang pembayaran, dan yang
 // menjaganya adalah tanda tangan HMAC di dalam controller. Terdaftar pada RUTE_PUBLIK.
 Route::post('webhook/pembayaran', WebhookPembayaranController::class)->name('webhook.pembayaran');
+
+// Pencairan routes for user actions (auth:sesi)
+Route::middleware(['auth:sesi', 'izin:pencairan.ajukan', 'idempoten'])->group(function (): void {
+    Route::post('dompet/pencairan', [PencairanSayaController::class, 'store'])->name('pencairan.store');
+    Route::get('dompet/pencairan', [PencairanSayaController::class, 'index'])->name('pencairan.index');
+});
+
+// Pencairan routes for staff decisions (auth:sesi)
+Route::middleware(['auth:sesi', 'izin:pencairan.setujui', 'idempoten'])->prefix('keuangan')->group(function (): void {
+    Route::get('pencairan', [PencairanStafController::class, 'index'])->name('pencairan.staf.index');
+    Route::post('pencairan/{kode}/setujui', [PencairanStafController::class, 'setujui'])->name('pencairan.staf.setujui');
+    Route::post('pencairan/{kode}/tolak', [PencairanStafController::class, 'tolak'])->name('pencairan.staf.tolak');
+});

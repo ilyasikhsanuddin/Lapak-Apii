@@ -28,6 +28,19 @@ final class PengelolaPeran
     ) {}
 
     /**
+     * Pintasan untuk memberikan satu atau beberapa peran; digunakan oleh Pengguna::assignRole().
+     */
+    public function tetapkanPeran(Pengguna $pengguna, string|NamaPeran|array $role): void
+    {
+        $roles = is_array($role) ? $role : [$role];
+
+        foreach ($roles as $r) {
+            $namaPeran = $r instanceof NamaPeran ? $r : NamaPeran::from($r);
+            $this->beri($pengguna, $namaPeran);
+        }
+    }
+
+    /**
      * @return bool false bila pengguna sudah memegang peran itu, sehingga tidak ada yang berubah
      */
     public function beri(Pengguna $pengguna, NamaPeran $peran, ?Pengguna $oleh = null): bool

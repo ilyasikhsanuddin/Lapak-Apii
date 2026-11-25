@@ -20,6 +20,8 @@ enum NamaIzin: string
     case PeranKelola = 'peran.kelola';
     case BukuBesarLihat = 'buku-besar.lihat';
     case AkunTangguhkan = 'akun.tangguhkan';
+    case PencairanAjukan = 'pencairan.ajukan';
+    case PencairanSetujui = 'pencairan.setujui';
 
     public function keterangan(): string
     {
@@ -34,6 +36,8 @@ enum NamaIzin: string
             self::PeranKelola => 'Memberi dan mencabut peran pengguna',
             self::BukuBesarLihat => 'Membaca seluruh dompet dan mutasi marketplace',
             self::AkunTangguhkan => 'Menangguhkan dan memulihkan akun pengguna',
+            self::PencairanAjukan => 'Mengajukan pencairan saldo',
+            self::PencairanSetujui => 'Menyetujui atau menolak pengajuan pencairan',
         };
     }
 }
