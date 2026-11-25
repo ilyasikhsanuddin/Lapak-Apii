@@ -11,4 +11,5 @@ enum StatusPembayaran: string
     /** Batas bayar terlewat. Pesanannya dibatalkan dan stoknya dikembalikan (LP-10). */
     case Kedaluwarsa = 'kedaluwarsa';
     case Dibatalkan = 'dibatalkan';
+    case Dikembalikan = 'dikembalikan';
 }

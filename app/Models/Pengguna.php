@@ -8,6 +8,7 @@ use App\Enums\NamaIzin;
 use App\Enums\NamaPeran;
 use App\Enums\StatusAkun;
 use App\Services\PemeriksaIzin;
+use App\Services\PengelolaPeran;
 use Database\Factories\PenggunaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -52,8 +53,18 @@ final class Pengguna extends Authenticatable
         return $this->peran()->where('peran.nama', $peran->value)->exists();
     }
 
-    public function punyaIzin(NamaIzin $izin): bool
+    public function assignRole(string|NamaPeran|array $role): void
     {
-        return app(PemeriksaIzin::class)->punya($this, $izin);
+        // Delegate to PengelolaPeran service which handles role assignment logic.
+        app(PengelolaPeran::class)->tetapkanPeran($this, $role);
+    }
+
+    public function punyaIzin(NamaIzin|string $izin): bool
+    {
+        $izinEnum = $izin instanceof NamaIzin
+            ? $izin
+                : NamaIzin::from($izin);
+
+        return app(PemeriksaIzin::class)->punya($this, $izinEnum);
     }
 }

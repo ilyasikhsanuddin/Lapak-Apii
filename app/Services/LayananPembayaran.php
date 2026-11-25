@@ -9,6 +9,7 @@ use App\Domain\Pesanan\StatusPesanan;
 use App\Domain\Uang;
 use App\Enums\JenisDompet;
 use App\Enums\JenisMutasi;
+use App\Enums\PeristiwaAudit;
 use App\Enums\StatusPembayaran;
 use App\Exceptions\GalatDomain;
 use App\Models\Checkout;
@@ -26,6 +27,7 @@ final class LayananPembayaran
         private readonly GembokCheckout $gembok,
         private readonly BukuBesar $buku,
         private readonly MesinStatusPesanan $mesin,
+        private readonly PencatatAudit $audit,
     ) {}
 
     /** LP-7: tagihan sebesar total checkout, dengan batas bayar menurut LP-10. */
@@ -95,10 +97,10 @@ final class LayananPembayaran
     }
 
     /**
-     * Menerima kabar dari gerbang bahwa sebuah tagihan dibayar. Aman diterima berulang kali:
      * gerbang pembayaran mengirim ulang webhook yang jawabannya tidak sampai kepadanya.
      *
-     * @return string "dilunasi" bila kabar ini yang melunasi, "sudah_diproses" bila sudah lunas
+     * @return string "dilunasi" bila kabar ini yang melunasi, "sudah_diproses" bila sudah lunas,
+     *                "dikembalikan" bila uangnya tiba setelah tagihan ditutup
      */
     public function terima(string $kode, int $jumlahRupiah, string $idPeristiwa): string
     {
@@ -119,8 +121,14 @@ final class LayananPembayaran
                 return 'sudah_diproses';
             }
 
-            if ($pembayaran->status === StatusPembayaran::Kedaluwarsa) {
-                throw new GalatDomain('LP-10', 'Tagihan ini sudah kedaluwarsa.', 409);
+            if ($pembayaran->status === StatusPembayaran::Dikembalikan) {
+                return 'sudah_dikembalikan';
+            }
+
+            // Tagihan sudah ditutup, tetapi gerbang menyatakan uangnya masuk. Menjawab 409 tidak
+            // mengembalikan uang siapa pun: uang itu nyata dan harus tercatat perjalanannya.
+            if ($pembayaran->status !== StatusPembayaran::Menunggu) {
+                return $this->kembalikanTerlambat($pembayaran, $jumlahRupiah, $idPeristiwa);
             }
 
             // Jumlah dibandingkan dengan tagihan di basis data. Kabar "sudah dibayar" untuk
@@ -139,8 +147,54 @@ final class LayananPembayaran
 
             $this->tahanDana($checkout, $pembayaran);
 
+            $sasaran = "pembayaran:{$pembayaran->kode}";
+            $this->audit->catat(PeristiwaAudit::PembayaranLunas, null, $sasaran, [
+                'jumlah_rupiah' => $jumlahRupiah,
+                'id_peristiwa' => $idPeristiwa,
+                'pesanan' => $checkout->pesanan()->orderBy('id')->pluck('nomor')->all(),
+            ]);
+
             return 'dilunasi';
         });
+    }
+
+    /**
+     * Uang yang tiba terlambat dibukukan MASUK lalu KELUAR lagi, bukan diabaikan. Buku besar
+     * mencatat apa yang terjadi pada uang, termasuk uang yang tidak jadi dipakai. Yang
+     * dikembalikan adalah jumlah yang benar-benar diterima gerbang, berapa pun tagihannya.
+     */
+    private function kembalikanTerlambat(
+        Pembayaran $pembayaran,
+        int $jumlahRupiah,
+        string $idPeristiwa,
+    ): string {
+        $asal = $pembayaran->status;
+        $pembayaran->forceFill([
+            'status' => StatusPembayaran::Dikembalikan,
+            'id_peristiwa' => $idPeristiwa,
+        ])->save();
+
+        $luar = $this->buku->dompetSistem(JenisDompet::Eksternal);
+        $escrow = $this->buku->dompetSistem(JenisDompet::Escrow);
+        $jumlah = Uang::dari($jumlahRupiah);
+
+        $this->buku->pindahkan(
+            $luar, $escrow, $jumlah, JenisMutasi::DanaMasuk, $pembayaran->kode,
+            'Pembayaran tiba setelah tagihan ditutup',
+        );
+        $this->buku->pindahkan(
+            $escrow, $luar, $jumlah, JenisMutasi::Pengembalian, $pembayaran->kode,
+            'Pengembalian pembayaran terlambat',
+        );
+
+        $sasaran = "pembayaran:{$pembayaran->kode}";
+        $this->audit->catat(PeristiwaAudit::PembayaranDikembalikan, null, $sasaran, [
+            'jumlah_rupiah' => $jumlahRupiah,
+            'id_peristiwa' => $idPeristiwa,
+            'status_tagihan' => $asal->value,
+        ]);
+
+        return 'dikembalikan';
     }
 
     /** LP-12: uang pembeli masuk escrow, satu pemindahan per pesanan. Pesanan ditandai dibayar. */

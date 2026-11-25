@@ -13,4 +13,9 @@ return [
     'GET api/v1/buku-besar/kelompok/{kelompok}' => ['keuangan', 'auditor'],
 
     'GET api/v1/pembayaran/{kode}' => ['pembeli'],
+    'POST api/v1/dompet/pencairan' => ['penjual'],
+    'GET api/v1/dompet/pencairan' => ['penjual'],
+    'GET api/v1/keuangan/pencairan' => ['keuangan'],
+    'POST api/v1/keuangan/pencairan/{kode}/setujui' => ['keuangan'],
+    'POST api/v1/keuangan/pencairan/{kode}/tolak' => ['keuangan'],
 ];
