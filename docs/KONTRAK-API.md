@@ -80,6 +80,11 @@ ditulis. `PeranIzinSeeder` menyalinnya ke basis data. Tidak ada peran yang memeg
 - Kunci yang sama dengan badan yang berbeda dijawab 422 `LP-11`. Kunci berlaku per pengguna.
 - Catatan kunci dan seluruh perubahan data berada dalam satu transaksi basis data. Rute yang
   memasang `idempoten` karenanya tidak boleh memanggil layanan luar di dalam controller-nya.
+- Catatan kunci disimpan 7 hari, lalu dipangkas setiap dini hari (`lapak:pangkas-idempotensi`).
+  Pengulangan dengan kunci yang sama SETELAH 7 hari diperlakukan sebagai permintaan baru: tidak
+  ada header `Idempotency-Replayed`, dan efeknya terjadi lagi. Kunci hanya melindungi dari
+  pengulangan karena jaringan (detik sampai jam), bukan dari klien yang mengirim ulang permintaan
+  lama. Klien wajib membuat kunci baru untuk niat baru dan tidak menyimpan kunci lebih dari itu.
 
 ## Webhook pembayaran
 
