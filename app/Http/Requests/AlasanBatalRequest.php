@@ -13,6 +13,11 @@ final class AlasanBatalRequest extends FormRequest
         return true;
     }
 
+    public function alasan(): string
+    {
+        return trim((string) $this->validated('alasan'));
+    }
+
     public function rules(): array
     {
         return [

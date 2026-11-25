@@ -11,6 +11,10 @@ return [
     'DELETE api/v1/keranjang/butir/{produkId}' => ['pembeli'],
 
     'POST api/v1/checkout' => ['pembeli'],
+    'POST api/v1/checkout/{kode}/batal' => ['pembeli'],
+
     'GET api/v1/pesanan' => ['pembeli'],
     'GET api/v1/pesanan/{nomor}' => ['pembeli'],
+    'POST api/v1/pesanan/{nomor}/terima' => ['pembeli'],
+    'POST api/v1/pesanan/{nomor}/batal' => ['pembeli'],
 ];

@@ -39,4 +39,16 @@ Route::middleware(['auth:sesi', 'izin:pesanan.buat'])
 
         Route::get('pesanan/{nomor}', [PesananSayaController::class, 'show'])
             ->name('pesanan.show');
+
+        // Tindakan pembeli: wajib batas laju dan Idempotency-Key.
+        Route::middleware(['throttle:transaksi', 'idempoten'])->group(function (): void {
+            Route::post('pesanan/{nomor}/terima', [PesananSayaController::class, 'terima'])
+                ->name('pesanan.terima');
+
+            Route::post('pesanan/{nomor}/batal', [PesananSayaController::class, 'batal'])
+                ->name('pesanan.batal');
+
+            Route::post('checkout/{kode}/batal', [PesananSayaController::class, 'batalCheckout'])
+                ->name('checkout.batal');
+        });
     });

@@ -15,3 +15,6 @@ Schedule::command('lapak:pangkas-sesi')->dailyAt('03:15');
 Schedule::command('lapak:batalkan-kedaluwarsa')
     ->everyTenMinutes()
     ->withoutOverlapping();
+
+// LP-12: selesaikan pesanan yang melewati masa penahanan dana.
+Schedule::command('lapak:selesaikan-otomatis')->hourly()->withoutOverlapping();
