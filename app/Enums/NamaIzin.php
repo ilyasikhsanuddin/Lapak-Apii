@@ -19,6 +19,7 @@ enum NamaIzin: string
     case TokoModerasi = 'toko.moderasi';
     case PeranKelola = 'peran.kelola';
     case BukuBesarLihat = 'buku-besar.lihat';
+    case AuditLihat = 'audit.lihat';
     case AkunTangguhkan = 'akun.tangguhkan';
     case PencairanAjukan = 'pencairan.ajukan';
     case PencairanSetujui = 'pencairan.setujui';
@@ -35,6 +36,7 @@ enum NamaIzin: string
             self::TokoModerasi => 'Menyetujui dan menangguhkan toko',
             self::PeranKelola => 'Memberi dan mencabut peran pengguna',
             self::BukuBesarLihat => 'Membaca seluruh dompet dan mutasi marketplace',
+            self::AuditLihat => 'Membaca log audit tanpa hak tulis apa pun',
             self::AkunTangguhkan => 'Menangguhkan dan memulihkan akun pengguna',
             self::PencairanAjukan => 'Mengajukan pencairan saldo',
             self::PencairanSetujui => 'Menyetujui atau menolak pengajuan pencairan',

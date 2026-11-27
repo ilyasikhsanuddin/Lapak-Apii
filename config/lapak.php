@@ -61,4 +61,9 @@ return [
         'laju_per_menit' => 10,
         'alamat_maksimum' => 5,
     ],
+
+    'idempotensi' => [
+        // LP-11: lama catatan Idempotency-Key disimpan sebelum dipangkas lapak:pangkas-idempotensi.
+        'simpan_hari' => (int) env('LAPAK_IDEMPOTENSI_SIMPAN_HARI', 7),
+    ],
 ];
