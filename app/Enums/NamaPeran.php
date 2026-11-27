@@ -58,6 +58,7 @@ enum NamaPeran: string
             ],
             self::Auditor => [
                 NamaIzin::BukuBesarLihat,
+                NamaIzin::AuditLihat,
             ],
         };
     }

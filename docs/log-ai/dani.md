@@ -26,3 +26,10 @@
 | Argumen mengapa checkout tetap aman setelah 7 hari, termasuk catatan bahwa rute `POST /toko-saya/produk/{id}/stok` tidak punya pengaman kedua | Claude | Dicocokkan dengan perilaku checkout (keranjang kosong → 422 `KERANJANG_KOSONG`, tagihan kedaluwarsa dalam 24 jam) |
 | Pemeriksaan balapan setelah perubahan | Saya | Menjalankan `php artisan lapak:balapan --semua` di MySQL: 8 skenario LULUS. Kegagalan pertama (`ModelNotFoundException`) disebabkan `DB_DATABASE=lapak_uji` yang masih terpasang di terminal, bukan kode; diperbaiki lalu dijalankan ulang |
 | Pemeriksaan sebelum PR | Saya | Memeriksa `git status` bersih, `git diff origin/main --stat` (tanpa `.env` dan `vendor/`), dan rebase ke `origin/main` terbaru (sudah mutakhir) |
+
+## Sesi 5: B5 Rantai audit
+
+| Bagian | Alat | Cara memverifikasi |
+|---|---|---|
+| Rebase B5, pemeriksa jangkar, rute auditor, matriks otorisasi, dan uji pemangkasan | Codex | Pint lulus. Pest meluluskan 462 uji dan 1.785 asersi pada SQLite dan MySQL 8.0.46. Migrasi dan seeder diuji pada basis data baru. |
+| Pembandingan penguncian kepala rantai | Codex | Pada salinan terpisah dengan pencatat kontrak, 1 dari 12 proses tercatat. Pada B5, 12 dari 12 tercatat. Kesebelas skenario yang terdaftar lulus. Buku besar seimbang dan rantai berisi 20 baris valid setelah balapan. |
