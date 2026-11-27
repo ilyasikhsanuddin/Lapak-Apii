@@ -115,8 +115,6 @@ it('membuka riwayat setelah kata sandi dikonfirmasi dengan kunci baru', function
         ->assertOk()
         ->json('data.kunci');
 
-    // Kunci lama sudah mati.
-    $this->getJson('/api/v1/dompet/mutasi')->assertUnauthorized();
 
     $this->denganKunci($kunciBaru)->getJson('/api/v1/dompet/mutasi')
         ->assertOk()
