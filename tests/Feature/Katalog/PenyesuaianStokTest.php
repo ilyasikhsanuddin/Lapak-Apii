@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Kategori;
+use App\Models\LogAudit;
 use App\Models\Pengguna;
 use App\Models\Produk;
 use App\Models\Toko;
@@ -13,7 +14,6 @@ it('menambah dan mengurangi stok penjual secara relatif dengan kunci idempotensi
     $toko = Toko::factory()->for($penjual, 'pemilik')->create();
     $produk = Produk::factory()->for($toko)->create(['stok' => 10]);
 
-    // Tambah stok (+5 -> 15)
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-001')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 5])
@@ -22,7 +22,6 @@ it('menambah dan mengurangi stok penjual secara relatif dengan kunci idempotensi
 
     expect($produk->fresh()->stok)->toBe(15);
 
-    // Ulangi dengan Idempotency-Key yang sama: stok tidak bertambah dua kali (LP-11)
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-001')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 5])
@@ -32,7 +31,6 @@ it('menambah dan mengurangi stok penjual secara relatif dengan kunci idempotensi
 
     expect($produk->fresh()->stok)->toBe(15);
 
-    // Kurangi stok (-6 -> 9)
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-002')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => -6])
@@ -47,7 +45,6 @@ it('menolak pengurangan stok yang menyebabkan negatif atau melebihi batas dengan
     $toko = Toko::factory()->for($penjual, 'pemilik')->create();
     $produk = Produk::factory()->for($toko)->create(['stok' => 4]);
 
-    // Mengurangi 5 dari stok 4 -> ditolak 409 LP-4
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-negatif')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => -5])
@@ -56,7 +53,6 @@ it('menolak pengurangan stok yang menyebabkan negatif atau melebihi batas dengan
 
     expect($produk->fresh()->stok)->toBe(4);
 
-    // Menambah melewati MAKSIMUM -> ditolak 409 LP-4
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-batas')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => PenjagaStok::MAKSIMUM])
@@ -71,13 +67,11 @@ it('menolak perubahan stok lewat PATCH produk dan menolak akses milik toko lain'
     $toko = Toko::factory()->for($penjual, 'pemilik')->create();
     $produk = Produk::factory()->for($toko)->for(Kategori::factory())->create(['stok' => 10]);
 
-    // PATCH tidak boleh menerima kolom stok
     $this->sebagai($penjual)
         ->patchJson("/api/v1/toko-saya/produk/{$produk->id}", ['stok' => 99])
         ->assertUnprocessable()
         ->assertJsonStructure(['galat' => ['rincian' => ['stok']]]);
 
-    // Penjual lain mendapat 404 (LP-5)
     $penjualLain = Pengguna::factory()->penjual()->create();
     Toko::factory()->for($penjualLain, 'pemilik')->create();
 
@@ -86,10 +80,44 @@ it('menolak perubahan stok lewat PATCH produk dan menolak akses milik toko lain'
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 5])
         ->assertNotFound();
 
-    // Selisih 0 ditolak validasi
     $this->sebagai($penjual)
         ->withHeader('Idempotency-Key', 'kunci-penyesuaian-nol')
         ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 0])
         ->assertUnprocessable()
         ->assertJsonStructure(['galat' => ['rincian' => ['selisih']]]);
+});
+
+it('mencatat setiap penyesuaian stok pada log audit, satu kali per niat (LP-17)', function (): void {
+    $penjual = Pengguna::factory()->penjual()->create();
+    $toko = Toko::factory()->for($penjual, 'pemilik')->create();
+    $produk = Produk::factory()->for($toko)->create(['stok' => 10]);
+
+    $this->sebagai($penjual)
+        ->withHeader('Idempotency-Key', 'kunci-jejak-stok-001')
+        ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 5])
+        ->assertOk();
+
+    $this->sebagai($penjual)
+        ->withHeader('Idempotency-Key', 'kunci-jejak-stok-001')
+        ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => 5])
+        ->assertOk()
+        ->assertHeader('Idempotency-Replayed', 'true');
+
+    $this->sebagai($penjual)
+        ->withHeader('Idempotency-Key', 'kunci-jejak-stok-002')
+        ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => -12])
+        ->assertOk();
+
+    $this->sebagai($penjual)
+        ->withHeader('Idempotency-Key', 'kunci-jejak-stok-003')
+        ->postJson("/api/v1/toko-saya/produk/{$produk->id}/stok", ['selisih' => -99])
+        ->assertConflict();
+
+    $jejak = LogAudit::query()->where('peristiwa', 'stok.disesuaikan')->orderBy('id')->get();
+
+    expect($jejak)->toHaveCount(2)
+        ->and($jejak->pluck('pelaku_id')->unique()->all())->toBe([$penjual->id])
+        ->and($jejak[0]->sasaran)->toBe("produk:{$produk->id}")
+        ->and($jejak[0]->rincian)->toEqual(['selisih' => 5, 'stok_setelah' => 15])
+        ->and($jejak[1]->rincian)->toEqual(['selisih' => -12, 'stok_setelah' => 3]);
 });

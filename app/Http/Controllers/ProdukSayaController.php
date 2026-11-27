@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\PeristiwaAudit;
 use App\Enums\StatusProduk;
 use App\Http\Requests\DaftarProdukSayaRequest;
 use App\Http\Requests\PenyesuaianStokRequest;
@@ -11,10 +12,12 @@ use App\Http\Requests\ProdukSayaRequest;
 use App\Http\Resources\ProdukSayaResource;
 use App\Models\Produk;
 use App\Models\Toko;
+use App\Services\PencatatAudit;
 use App\Services\PenjagaStok;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final class ProdukSayaController extends Controller
@@ -77,12 +80,28 @@ final class ProdukSayaController extends Controller
         return $this->sukses(ProdukSayaResource::make($produk));
     }
 
-    public function stok(PenyesuaianStokRequest $request, PenjagaStok $penjaga, int $id): JsonResponse
-    {
+    public function stok(
+        PenyesuaianStokRequest $request,
+        PenjagaStok $penjaga,
+        PencatatAudit $audit,
+        int $id,
+    ): JsonResponse {
         $produk = Produk::query()->with('toko')->findOrFail($id);
         abort_unless($produk->dimilikiOleh($request->user()), 404);
 
-        $diperbarui = $penjaga->sesuaikan($produk->id, (int) $request->validated('selisih'));
+        $selisih = (int) $request->validated('selisih');
+
+        $diperbarui = DB::transaction(function () use ($request, $penjaga, $audit, $produk, $selisih): Produk {
+            $terkini = $penjaga->sesuaikan($produk->id, $selisih);
+
+            $audit->catat(PeristiwaAudit::StokDisesuaikan, $request->user(), "produk:{$produk->id}", [
+                'selisih' => $selisih,
+                'stok_setelah' => $terkini->stok,
+            ]);
+
+            return $terkini;
+        });
+
         $diperbarui->load(['kategori', 'toko']);
 
         return $this->sukses(ProdukSayaResource::make($diperbarui));
