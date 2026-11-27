@@ -137,6 +137,20 @@ it('menolak jangkar yang bentuknya salah', function () {
         ->toThrow(InvalidArgumentException::class, 'Jangkar harus berbentuk');
 });
 
+it('memeriksa jangkar yang dicatat sebelum baris pertama', function () {
+    expect($this->pemeriksa->periksa('0:'.RantaiHash::awal())->utuh())->toBeTrue()
+        ->and($this->pemeriksa->periksa('0:'.str_repeat('a', 64))->temuan)
+        ->toBe(['Jangkar kosong tidak cocok dengan hash awal rantai.']);
+});
+
+it('melaporkan isi yang tidak bisa dihitung sebagai kerusakan rantai', function () {
+    DB::table('log_audit')->where('id', $this->id[2])->update(['rincian' => '{"urutan":3.5}']);
+
+    $this->artisan('lapak:verifikasi-audit')
+        ->expectsOutputToContain("Baris {$this->id[2]} tidak cocok dengan hash-nya")
+        ->assertExitCode(1);
+});
+
 it('mengeluarkan kode 1 dan menyebut baris yang rusak lewat perintah artisan', function () {
     DB::table('log_audit')->where('id', $this->id[2])->update(['sasaran' => 'toko:999']);
 

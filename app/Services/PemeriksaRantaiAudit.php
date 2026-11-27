@@ -9,6 +9,7 @@ use App\Domain\Audit\RantaiHash;
 use App\Models\LogAudit;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use JsonException;
 
 /**
  * Membaca seluruh log audit dan menghitung ulang rantainya (LP-17). Hanya membaca.
@@ -21,7 +22,7 @@ use InvalidArgumentException;
  */
 final class PemeriksaRantaiAudit
 {
-    private const POLA_JANGKAR = '/^(\d+):([0-9a-f]{64})$/';
+    private const POLA_JANGKAR = '/\A(0|[1-9]\d*):([0-9a-f]{64})\z/';
 
     /**
      * @param  string|null  $jangkar  "jumlah:hash" dari pemeriksaan terdahulu, disimpan di luar
@@ -38,6 +39,10 @@ final class PemeriksaRantaiAudit
             $jumlah = 0;
             $temuan = [];
 
+            if ($barisJangkar === 0 && $hashJangkar !== $sebelumnya) {
+                $temuan[] = 'Jangkar kosong tidak cocok dengan hash awal rantai.';
+            }
+
             // Urutan baris, bukan nomor id: nomor urut otomatis dapat berlubang
             // karena transaksi yang batal tetap menghabiskan satu nomor.
             foreach (LogAudit::query()->lazyById(500) as $log) {
@@ -48,7 +53,11 @@ final class PemeriksaRantaiAudit
                         .'ada baris yang dihapus, disisipkan, atau ditukar.';
                 }
 
-                $hitung = RantaiHash::hitung($log->hash_sebelumnya, $log->isiTerlindung());
+                try {
+                    $hitung = RantaiHash::hitung($log->hash_sebelumnya, $log->isiTerlindung());
+                } catch (InvalidArgumentException|JsonException) {
+                    $hitung = null;
+                }
 
                 if ($hitung !== $log->hash) {
                     $temuan[] = "Baris {$log->id} tidak cocok dengan hash-nya: isinya diubah.";
@@ -84,7 +93,8 @@ final class PemeriksaRantaiAudit
             return [null, null];
         }
 
-        if (preg_match(self::POLA_JANGKAR, $jangkar, $bagian) !== 1) {
+        if (preg_match(self::POLA_JANGKAR, $jangkar, $bagian) !== 1
+            || filter_var($bagian[1], FILTER_VALIDATE_INT) === false) {
             throw new InvalidArgumentException('Jangkar harus berbentuk <jumlah>:<hash 64 huruf>.');
         }
 

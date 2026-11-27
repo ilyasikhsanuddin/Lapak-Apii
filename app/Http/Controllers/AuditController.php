@@ -23,7 +23,6 @@ final class AuditController extends Controller
         $saring = $request->validated();
 
         $halaman = LogAudit::query()
-            ->with('pelaku')
             ->when($saring['peristiwa'] ?? null, fn (Builder $k, $v) => $k->where('peristiwa', $v))
             ->when($saring['sasaran'] ?? null, fn (Builder $k, $v) => $k->where('sasaran', $v))
             ->when($saring['pelaku_id'] ?? null, fn (Builder $k, $v) => $k->where('pelaku_id', $v))

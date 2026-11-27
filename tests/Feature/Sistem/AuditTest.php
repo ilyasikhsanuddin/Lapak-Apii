@@ -20,15 +20,19 @@ it('dapat dibaca auditor dengan sesi segar, terbaru lebih dulu', function () {
         ->assertJsonPath('data.1.peristiwa', 'toko.disetujui');
 });
 
-it('dapat disaring menurut peristiwa dan sasaran', function () {
+it('dapat menggabungkan saringan peristiwa, sasaran, dan pelaku', function () {
     $pencatat = app(PencatatAudit::class);
+    $pelaku = Pengguna::factory()->create();
+    $pencatat->catat(PeristiwaAudit::TokoDisetujui, $pelaku, 'toko:2');
+    $pencatat->catat(PeristiwaAudit::TokoDitangguhkan, $pelaku, 'toko:1');
     $pencatat->catat(PeristiwaAudit::TokoDisetujui, null, 'toko:1');
-    $pencatat->catat(PeristiwaAudit::DanaDilepas, null, 'pesanan:LPK-1');
+    $cocok = $pencatat->catat(PeristiwaAudit::TokoDisetujui, $pelaku, 'toko:1');
 
-    $this->sebagai($this->auditor)->getJson('/api/v1/audit?sasaran=pesanan:LPK-1')
+    $this->sebagai($this->auditor)
+        ->getJson("/api/v1/audit?peristiwa=toko.disetujui&sasaran=toko:1&pelaku_id={$pelaku->id}")
         ->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.peristiwa', 'dana.dilepas');
+        ->assertJsonPath('data.0.id', $cocok->id);
 });
 
 it('menolak peristiwa yang tidak dikenal pada penyaring', function () {
@@ -52,11 +56,11 @@ it('hanya terbuka bagi auditor: staf keuangan dan admin pun ditolak', function (
         ->assertJsonPath('galat.kode', 'DITOLAK');
 })->with(['pembeli', 'penjual', 'admin', 'keuangan']);
 
-it('menuntut sesi segar (LP-15)', function () {
-    $this->sebagai($this->auditor, segar: false)->getJson('/api/v1/audit')
+it('menuntut sesi segar (LP-15)', function (string $rute) {
+    $this->sebagai($this->auditor, segar: false)->getJson($rute)
         ->assertForbidden()
         ->assertJsonPath('galat.kode', 'LP-15');
-});
+})->with(['/api/v1/audit', '/api/v1/audit/rantai']);
 
 it('menuntut masuk terlebih dahulu', function () {
     $this->getJson('/api/v1/audit')->assertUnauthorized();
