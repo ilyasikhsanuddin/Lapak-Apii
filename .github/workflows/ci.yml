@@ -36,6 +36,9 @@ jobs:
       - name: Migrasi dan seeder dari basis data kosong
         run: php artisan migrate:fresh --seed --force
 
+      - name: Rantai log audit utuh
+        run: php artisan lapak:verifikasi-audit
+
       - name: Pengujian
         run: ./vendor/bin/pest --ci
 
@@ -94,3 +97,8 @@ jobs:
 
       - name: Buku besar seimbang setelah balapan
         run: php artisan lapak:periksa-buku
+
+      # Skenario balapan menulis puluhan jejak dari proses yang berbeda pada detik yang sama.
+      # Bila kepala rantai tidak dikunci dengan benar, di sinilah rantainya bercabang atau putus.
+      - name: Rantai log audit utuh setelah balapan
+        run: php artisan lapak:verifikasi-audit
