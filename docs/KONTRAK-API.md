@@ -140,18 +140,8 @@ Pembatalan pesanan yang sudah dibayar mengembalikan dana melalui
 yang kedaluwarsa dijalankan oleh `PembatalanOtomatis` melalui
 `LayananPesanan`.
 
-## Log audit
+## Perubahan Sesi 5 pada pintu masuk
 
-- `GET /api/v1/audit` menampilkan daftar baris log audit terbaru lebih dulu (dapat disaring menurut
-  `peristiwa`, `sasaran`, dan `pelaku_id`), dan `GET /api/v1/audit/rantai` menampilkan ujung serta
-  panjang rantai saat ini (`jumlah`, `hash_terakhir`, `jangkar`).
-- Kedua endpoint hanya terbuka bagi pemegang izin `audit.lihat` dengan sesi segar (`LP-15`), dan
-  tidak ada endpoint tulis di bawah `/api/v1/audit` (`LP-17`).
-- Jejak hanya ditulis oleh `App\Services\PencatatAudit::catat()` di dalam transaksi yang sama
-  dengan tindakannya, sebagai langkah terakhir sebelum transaksi selesai, sambil mengunci baris
-  kepala `rantai_audit` (`lockForUpdate()`) agar penulisan serempak tidak bercabang.
-- Rincian yang memuat kunci rahasia (`kata_sandi`, `kunci`, `hash_kunci`, `rahasia`,
-  `tanda_tangan`) atau bilangan pecahan ditolak di pintu, dan baris log tidak dapat diubah atau
-  dihapus lewat model.
-- Keutuhan seluruh rantai diverifikasi dengan `php artisan lapak:verifikasi-audit [--jangkar=...]`,
-  termasuk secara otomatis setiap dini hari lewat penjadwal dan pada jalur CI.
+- `POST /masuk`: kolom `surel` wajib berbentuk surel. Isian lain dijawab **422** `VALIDASI` (sebelumnya 401).
+- Kunci yang sudah digantikan rotasi lalu dipakai lagi dijawab **401** `BELUM_MASUK`, sama seperti kunci salah mana pun, tetapi sesinya dicabut dan kejadiannya dicatat (LP-14, LP-17).
+- Percobaan masuk, berhasil maupun gagal, dicatat pada log audit. Kata sandi yang dicoba tidak pernah dicatat.

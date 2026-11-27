@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\LogAudit;
 use App\Models\Pengguna;
 use App\Models\Sesi;
 use App\Services\PenerbitSesi;
@@ -84,8 +85,8 @@ it('menyegarkan sesi dan mengganti kuncinya setelah kata sandi dikonfirmasi', fu
 
     expect($kunciBaru)->not->toBe($kunciLama)->and(Sesi::count())->toBe(1);
 
-    $this->denganKunci($kunciLama)->getJson('/api/v1/saya')->assertUnauthorized();
     $this->denganKunci($kunciBaru)->getJson('/api/v1/saya')->assertOk();
+    $this->denganKunci($kunciLama)->getJson('/api/v1/saya')->assertUnauthorized();   // terakhir: memicu pencabutan
 });
 
 it('menolak konfirmasi dengan kata sandi salah dan membiarkan sesi tetap tidak segar', function () {
@@ -108,4 +109,36 @@ it('membatasi tebakan kata sandi lewat pintu konfirmasi', function () {
 
     $this->postJson('/api/v1/sesi/konfirmasi', ['kata_sandi' => 'BatikSolo2026'])
         ->assertTooManyRequests();
+});
+
+it('mencabut sesi begitu kunci yang sudah dirotasi dipakai lagi, dan mencatatnya', function () {
+    [$sesi, $kunciLama] = ($this->terbit)($this->sri, 'Laptop');
+    $kunciBaru = app(PenerbitSesi::class)->rotasi($sesi);
+
+    // Kunci lama ditolak dengan jawaban yang sama seperti kunci salah mana pun.
+    $this->denganKunci($kunciLama)->getJson('/api/v1/saya')
+        ->assertUnauthorized()
+        ->assertJsonPath('galat.kode', 'BELUM_MASUK');
+
+    // Akibatnya: kunci baru ikut mati. Pemilik sah masuk ulang, penyalin kehilangan aksesnya.
+    $this->denganKunci($kunciBaru)->getJson('/api/v1/saya')->assertUnauthorized();
+
+    $jejak = LogAudit::query()->where('peristiwa', 'sesi.kunci_lama_dipakai')->sole();
+
+    expect($sesi->refresh()->dicabut_pada)->not->toBeNull()
+        ->and($jejak->pelaku_id)->toBe($this->sri->id)
+        ->and($jejak->sasaran)->toBe("sesi:{$sesi->pengenal}")
+        ->and($jejak->rincian)->toBe(['perangkat' => 'Laptop']);
+});
+
+it('tidak menganggap kunci acak sebagai kunci lama', function () {
+    [$sesi, $kunciLama] = ($this->terbit)($this->sri, 'Laptop');
+    $kunciBaru = app(PenerbitSesi::class)->rotasi($sesi);
+
+    $acak = 'lpk_'.$sesi->pengenal.'.'.str_repeat('a', 64);
+    $this->denganKunci($acak)->getJson('/api/v1/saya')->assertUnauthorized();
+
+    // Tebakan rahasia tidak boleh dapat dipakai untuk mengeluarkan orang dari sesinya.
+    $this->denganKunci($kunciBaru)->getJson('/api/v1/saya')->assertOk();
+    expect(LogAudit::query()->count())->toBe(0);
 });

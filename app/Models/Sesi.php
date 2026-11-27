@@ -17,7 +17,7 @@ final class Sesi extends Model
     // Sesi hanya dibuat dan diubah PenerbitSesi, tidak pernah dari masukan klien.
     protected $fillable = [];
 
-    protected $hidden = ['hash_kunci'];
+    protected $hidden = ['hash_kunci', 'hash_kunci_lama'];
 
     protected function casts(): array
     {

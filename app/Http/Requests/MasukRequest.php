@@ -27,7 +27,7 @@ final class MasukRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'surel' => ['required', 'string', 'max:150'],
+            'surel' => ['required', 'string', 'email', 'max:150'],
             'kata_sandi' => ['required', 'string', 'max:72'],
             'nama_perangkat' => ['sometimes', 'string', 'max:60'],
         ];
