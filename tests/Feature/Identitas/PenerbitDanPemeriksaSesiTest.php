@@ -82,7 +82,8 @@ it('mencatat pemakaian paling sering satu kali per menit', function () {
 it('mematikan kunci lama saat dirotasi tanpa mengganti sesinya', function () {
     $kunciBaru = $this->penerbit->rotasi($this->sesi);
 
-    expect($this->pemeriksa->periksa($this->kunci))->toBeNull()
-        ->and($this->pemeriksa->periksa($kunciBaru)?->pengenal)->toBe($this->sesi->pengenal)
+    // Kunci baru dicoba LEBIH DULU: memakai kunci lama kini mencabut sesinya (LP-14).
+    expect($this->pemeriksa->periksa($kunciBaru)?->pengenal)->toBe($this->sesi->pengenal)
+        ->and($this->pemeriksa->periksa($this->kunci))->toBeNull()
         ->and(Sesi::count())->toBe(1);
 });

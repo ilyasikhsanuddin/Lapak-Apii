@@ -51,10 +51,11 @@ it('mengganti kunci sesi yang sedang dipakai, sesinya tetap sama', function () {
     expect($kunciBaru)->toMatch('/^lpk_[0-9A-Z]{26}\.[0-9a-f]{64}$/')
         ->and($kunciBaru)->not->toBe($kunciLama);
 
-    $this->denganKunci($kunciLama)->getJson('/api/v1/saya')->assertUnauthorized();
+    // Kunci baru dicoba LEBIH DULU: memakai kunci lama kini mencabut sesinya (LP-14).
     $this->denganKunci($kunciBaru)->getJson('/api/v1/saya')
         ->assertOk()
         ->assertJsonPath('data.sesi.pengenal', $sesi->pengenal);
+    $this->denganKunci($kunciLama)->getJson('/api/v1/saya')->assertUnauthorized();
 });
 
 it('menuntut sesi segar dan tidak mengubah apa pun bila tidak segar (LP-15)', function () {
