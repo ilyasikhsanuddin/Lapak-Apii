@@ -136,3 +136,9 @@ Pembatalan pesanan yang sudah dibayar mengembalikan dana melalui
 `LayananDana` dan mengembalikan stok produk terkait. Pembatalan checkout
 yang kedaluwarsa dijalankan oleh `PembatalanOtomatis` melalui
 `LayananPesanan`.
+
+## Perubahan Sesi 5 pada pintu masuk
+
+- `POST /masuk`: kolom `surel` wajib berbentuk surel. Isian lain dijawab **422** `VALIDASI` (sebelumnya 401).
+- Kunci yang sudah digantikan rotasi lalu dipakai lagi dijawab **401** `BELUM_MASUK`, sama seperti kunci salah mana pun, tetapi sesinya dicabut dan kejadiannya dicatat (LP-14, LP-17).
+- Percobaan masuk, berhasil maupun gagal, dicatat pada log audit. Kata sandi yang dicoba tidak pernah dicatat.
