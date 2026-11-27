@@ -33,3 +33,11 @@
 |---|---|---|
 | Rebase B5, pemeriksa jangkar, rute auditor, matriks otorisasi, dan uji pemangkasan | Codex | Pint lulus. Pest meluluskan 462 uji dan 1.785 asersi pada SQLite dan MySQL 8.0.46. Migrasi dan seeder diuji pada basis data baru. |
 | Pembandingan penguncian kepala rantai | Codex | Pada salinan terpisah dengan pencatat kontrak, 1 dari 12 proses tercatat. Pada B5, 12 dari 12 tercatat. Kesebelas skenario yang terdaftar lulus. Buku besar seimbang dan rantai berisi 20 baris valid setelah balapan. |
+
+## Sesi 5: Draf rilis dan perbaikan CI
+
+| Bagian | Alat | Cara memverifikasi |
+|---|---|---|
+| Uji penutup, daftar periksa, dan papan sesi | Codex | Pint lulus. Uji naik versi memakai pesanan berbayar dari `sesi-4` yang diselesaikan setelah migrasi dan penyemaian ulang izin. |
+| Diagnosis PR #82 serta audit pencabutan sesi dan penyesuaian stok | Codex | Log GitHub Actions menunjukkan tujuh peristiwa tanpa pencatat. Setelah integrasi B1 dan perbaikan, 475 uji Pest lulus di SQLite dan MySQL. Uji regresi memeriksa rollback ketika pencatatan gagal. Kesebelas skenario balapan yang tersedia lulus. |
+| Penyesuaian cabang PR #82 dengan alur rilis modul | Codex | Cocokkan Langkah 11.4, 11.5, 13.1, dan 13.2 pada modul. Pint lulus. Uji penutup di atas `7c6a6ac` gagal pada `sesi.dicabut` dan `stok.disesuaikan`. |
