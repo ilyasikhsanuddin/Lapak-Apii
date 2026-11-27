@@ -36,7 +36,6 @@ jobs:
       - name: Migrasi dan seeder dari basis data kosong
         run: php artisan migrate:fresh --seed --force
 
-      # Seeder memberi peran lewat PengelolaPeran, maka log audit sudah berisi sejak awal.
       - name: Rantai log audit utuh
         run: php artisan lapak:verifikasi-audit
 
